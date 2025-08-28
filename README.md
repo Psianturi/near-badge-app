@@ -3,9 +3,7 @@
 This is the official frontend for the NEAR Badge (POAP) project. It's a React-based web application built with Vite that allows users and event organizers to interact with the NEAR Badge smart contract on the NEAR blockchain.
 
 ## Screenshot
-
-*(Di sini Anda bisa menambahkan screenshot dari aplikasi yang berjalan, seperti yang baru saja Anda kirimkan!)*
-![App Screenshot](URL_SCREENSHOT_ANDA)
+![alt text](image-1.png)
 
 ## Core Features (Current)
 - **Wallet Connection:** Connects to the NEAR Testnet using the official `@near-wallet-selector`, with support for MyNearWallet, Sender, and Ledger.
@@ -53,5 +51,4 @@ This frontend connects to the smart contract located at the following repository
 - [ ] **Badge Claiming Page:** Create the page for attendees to claim their POAP badges.
 - [ ] **Mainnet Preparation:** Audit and prepare for a full launch on the NEAR mainnet.
 
-<br>
-![alt text](image.png)
+
