@@ -1,11 +1,18 @@
-import { StrictMode } from 'react';
+// src/main.jsx
+import React from 'react';
 import { createRoot } from 'react-dom/client';
+import App from './App';
 import './styles/globals.css';
-import App from './App.jsx';
 
+import { WalletSelectorContextProvider } from "./contexts/WalletSelectorContext";
+import { selector, modal } from "./wallets/web3modal";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+const root = createRoot(document.getElementById('root'));
+
+root.render(
+  <React.StrictMode>
+    <WalletSelectorContextProvider selector={selector} modal={modal}>
+      <App />
+    </WalletSelectorContextProvider>
+  </React.StrictMode>
 );

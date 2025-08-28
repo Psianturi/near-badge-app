@@ -1,27 +1,23 @@
-import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { createAppKit } from "@reown/appkit/react";
-import { nearTestnet } from "@reown/appkit/networks";
 
-// Get a project ID at https://cloud.reown.com
-const projectId = "30147604c5f01d0bc4482ab0665b5697";
+import "@near-wallet-selector/modal-ui/styles.css";
+import { setupModal } from "@near-wallet-selector/modal-ui";
+import { setupWalletSelector } from "@near-wallet-selector/core";
+import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
+import { setupSender } from "@near-wallet-selector/sender";
+import { setupLedger } from "@near-wallet-selector/ledger"; 
+import { ContractName, NetworkId } from "../config";
 
-export const wagmiAdapter = new WagmiAdapter({
-  projectId,
-  networks: [nearTestnet],
+const selector = await setupWalletSelector({
+  network: NetworkId,
+  modules: [
+    setupMyNearWallet(),
+    setupSender(),     
+    setupLedger(),      
+  ],
 });
 
-export const web3Modal = createAppKit({
-  adapters: [wagmiAdapter],
-  projectId,
-  networks: [nearTestnet],
-  enableWalletConnect: true,
-  features: {
-    analytics: true,
-    swaps: false,
-    onramp: false,
-    email: false, // Smart accounts (Safe contract) not available on NEAR Protocol, only EOA.
-    socials: false, // Smart accounts (Safe contract) not available on NEAR Protocol, only EOA.
-  },
-  coinbasePreference: "eoaOnly", // Smart accounts (Safe contract) not available on NEAR Protocol, only EOA.
-  allWallets: "SHOW",
+const modal = setupModal(selector, {
+  contractId: ContractName,
 });
+
+export { selector, modal };
