@@ -1,4 +1,4 @@
-// src/App.jsx
+
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useWalletSelector } from './contexts/WalletSelectorContext';
@@ -60,7 +60,7 @@ function App() {
   };
 
   return (
-    // Kode JSX untuk tampilan... sama seperti sebelumnya
+    
     <div className="container">
       <header className="d-flex justify-content-end my-4">
         {accountId ? (

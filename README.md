@@ -46,7 +46,7 @@ This frontend connects to the smart contract located at the following repository
 
 ## Roadmap & Next Steps
 - [ ] **UI/UX Enhancements:** Improve the overall design and user experience.
-- [x] **Add More Wallets:** Integrate support for more wallets, including Meteor Wallet. *(Anda bisa mencentangnya setelah kita menambahkannya)*
+- [x] **Add More Wallets:** Integrate support for more wallets, including Meteor Wallet.
 - [ ] **Whitelist Management:** Build the UI for organizers to manage attendee whitelists.
 - [ ] **Badge Claiming Page:** Create the page for attendees to claim their POAP badges.
 - [ ] **Mainnet Preparation:** Audit and prepare for a full launch on the NEAR mainnet.
