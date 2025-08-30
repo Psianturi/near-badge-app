@@ -32,6 +32,6 @@ To run this project on your local machine:
 ## Screenshots
 Here’s a preview of the current frontend:
 
-![NEAR Badge Frontend Screenshot](![alt text](image-2.png))
-![NEAR Badge Frontend Screenshot](![alt text](image-3.png))
-![NEAR Badge Frontend Screenshot](![alt text](image-4.png))
+(image-2.png)
+(image-3.png)
+(image-4.png)
