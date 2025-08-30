@@ -9,12 +9,12 @@ import { setupSender } from "@near-wallet-selector/sender";
 import { setupLedger } from "@near-wallet-selector/ledger";
 import { ContractName, NetworkId } from "./config";
 
-// Fungsi untuk setup selector
+// Fungsi setup selector
 export const setupSelector = () => {
   return setupWalletSelector({
     network: {
       networkId: "testnet",
-      nodeUrl: "https://rpc.testnet.lava.build", // Menggunakan RPC publik alternatif
+      nodeUrl: "https://rpc.testnet.lava.build",
       helperUrl: "https://helper.testnet.near.org",
       explorerUrl: "https://explorer.testnet.near.org",
     },
@@ -27,7 +27,7 @@ export const setupSelector = () => {
   });
 };
 
-// Fungsi untuk setup modal
+
 export const setupSelectorModal = (selector) => {
   return setupModal(selector, {
     contractId: ContractName,

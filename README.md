@@ -16,7 +16,7 @@ This frontend connects to the smart contract located at the following repository
 
 ➡️ **[near-badge-contract](https://github.com/Psianturi/near-badge-contract)**
 
-- **Current Testnet Address:** `v4.poap-badge.testnet` *(atau alamat kontrak terakhir yang berfungsi)*
+- **Current Testnet Address:** `v4.poap-badge.testnet` 
 
 ## Running Locally
 To run this project on your local machine:

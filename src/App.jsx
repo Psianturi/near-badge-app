@@ -9,9 +9,9 @@ import {
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 
-// Constants
+
 const GAS = "30000000000000"; // 30 TGas
-const DEPOSIT = "100000000000000000000000"; // 0.1 NEAR
+// const DEPOSIT = "100000000000000000000000"; // 0.1 NEAR
 
 function App() {
   const { selector, modal, accountId } = useWalletSelector();
@@ -70,7 +70,7 @@ function App() {
   };
 
   return (
-    <Container maxW="container.md" mt={10}>
+    <Container maxW="container.lg" mt={10} py={6}>
       <Flex mb={8}>
         <Box>
           <Heading as="h1" size="lg">NEAR Badge Manager</Heading>

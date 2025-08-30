@@ -1,7 +1,7 @@
 // src/config.js
 
-// Alamat smart contract terakhir yang berfungsi dengan baik
+
 export const ContractName = 'v4.poap-badge.testnet';
 
-// Jaringan yang kita gunakan
+// Network
 export const NetworkId = 'testnet';
