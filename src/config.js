@@ -1,7 +1,7 @@
-const contractPerNetwork = {
-  mainnet: 'v1.social08.near', 
-  testnet: 'nearbadge-contract.testnet', // <-- 
-};
+// src/config.js
 
+// Alamat smart contract terakhir yang berfungsi dengan baik
+export const ContractName = 'v4.poap-badge.testnet';
+
+// Jaringan yang kita gunakan
 export const NetworkId = 'testnet';
-export const ContractName = contractPerNetwork[NetworkId];

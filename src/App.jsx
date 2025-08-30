@@ -1,12 +1,21 @@
+// src/App.jsx
 
 import React, { useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { useWalletSelector } from './contexts/WalletSelectorContext';
-import { ContractName } from './config';
+import { useWalletSelector } from './contexts/WalletSelectorContext.jsx';
+import { ContractName } from './config.js';
+import {
+  Box, Button, Container, FormControl, FormLabel, Heading, Input,
+  Text, Textarea, VStack, Link, Alert, Flex, Spacer
+} from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+
+// Constants
+const GAS = "30000000000000"; // 30 TGas
+const DEPOSIT = "100000000000000000000000"; // 0.1 NEAR
 
 function App() {
   const { selector, modal, accountId } = useWalletSelector();
-  
+
   const [eventName, setEventName] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [showSpinner, setShowSpinner] = useState(false);
@@ -17,9 +26,8 @@ function App() {
       alert("Please fill in both event name and description.");
       return;
     }
-    
     setShowSpinner(true);
-    
+
     try {
       const wallet = await selector.wallet();
       const result = await wallet.signAndSendTransaction({
@@ -31,92 +39,113 @@ function App() {
             params: {
               methodName: "create_event",
               args: { name: eventName, description: eventDescription },
-              gas: "30000000000000",
-              deposit: "0",
+              gas: GAS,
+              deposit: DEPOSIT,
             },
           },
         ],
       });
-      
-      const txUrl = `https://explorer.testnet.near.org/transactions/${result.transaction_outcome.id}`;
+
+      const txId = result.transaction_outcome?.id || result.transaction?.hash;
+      const txUrl = `https://explorer.testnet.near.org/transactions/${txId}`;
       setTransaction(txUrl);
+
       alert(`Event "${eventName}" created successfully!`);
 
+      setEventName('');
+      setEventDescription('');
     } catch (e) {
-      alert("Sorry, something went wrong. Please try again.");
+      const errorMessage = e?.kind?.ExecutionError || e.message || "Unknown error";
+      alert(`Error creating event: ${errorMessage}`);
       console.error("Error creating event:", e);
     } finally {
       setShowSpinner(false);
     }
   };
 
-  const handleSignIn = () => {
-    modal.show();
-  };
-
+  const handleSignIn = () => modal.show();
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
     wallet.signOut();
   };
 
   return (
-    
-    <div className="container">
-      <header className="d-flex justify-content-end my-4">
-        {accountId ? (
-          <button className="btn btn-secondary" onClick={handleSignOut}>Log out {accountId}</button>
-        ) : (
-          <button className="btn btn-primary" onClick={handleSignIn}>Log in</button>
-        )}
-      </header>
+    <Container maxW="container.md" mt={10}>
+      <Flex mb={8}>
+        <Box>
+          <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
+          <Text color="gray.500">Create and manage your community events on NEAR.</Text>
+        </Box>
+        <Spacer />
+        <Box>
+          {accountId ? (
+            <Button colorScheme="gray" onClick={handleSignOut}>
+              Log out {accountId}
+            </Button>
+          ) : (
+            <Button colorScheme="blue" onClick={handleSignIn}>
+              Log in
+            </Button>
+          )}
+        </Box>
+      </Flex>
+
       <main>
-        <h1>NEAR Badge / POAP Manager</h1>
-        <p>Create and manage your community events on the NEAR blockchain.</p>
-        
-        {accountId && (
-          <div className="card my-4">
-            <div className="card-header">
-              Create a New Event (Contract: {ContractName})
-            </div>
-            <div className="card-body">
-              <div className="mb-3">
-                <label htmlFor="eventName" className="form-label">Event Name</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  id="eventName" 
+        {accountId ? (
+          <Box p={6} borderWidth="1px" borderRadius="lg" boxShadow="md">
+            <VStack spacing={4} align="stretch">
+              <Heading as="h2" size="md">Create a New Event</Heading>
+              <Text fontSize="sm">Contract: {ContractName}</Text>
+
+              <FormControl isRequired>
+                <FormLabel>Event Name</FormLabel>
+                <Input
+                  placeholder="e.g., NEAR Dev Community Meetup"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
+                  isDisabled={showSpinner}
                 />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="eventDescription" className="form-label">Description</label>
-                <textarea 
-                  className="form-control" 
-                  id="eventDescription" 
-                  rows="3"
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Description</FormLabel>
+                <Textarea
+                  placeholder="A short description of the event."
                   value={eventDescription}
                   onChange={(e) => setEventDescription(e.target.value)}
-                ></textarea>
-              </div>
-              <button className="btn btn-success" onClick={handleCreateEvent} disabled={showSpinner}>
-                {showSpinner && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>}
-                Create Event
-              </button>
-            </div>
-          </div>
-        )}
+                  isDisabled={showSpinner}
+                />
+              </FormControl>
 
-        {!accountId && <p>Please log in to create an event.</p>}
+              <Button
+                colorScheme="green"
+                onClick={handleCreateEvent}
+                isLoading={showSpinner}
+              >
+                Create Event
+              </Button>
+            </VStack>
+          </Box>
+        ) : (
+          <Alert status="info" borderRadius="md">
+            <InfoIcon mr={3} />
+            Please log in to create an event.
+          </Alert>
+        )}
 
         {transaction && (
-          <div className="alert alert-info mt-4">
-            <p>Transaction successful!</p>
-            <a href={transaction} target="_blank" rel="noopener noreferrer">View Transaction on Explorer</a>
-          </div>
+          <Alert status="success" mt={4} borderRadius="md">
+            <InfoIcon mr={3} />
+            <Box>
+              <Text>Transaction successful!</Text>
+              <Link href={transaction} isExternal color="teal.500">
+                View Transaction on Explorer
+              </Link>
+            </Box>
+          </Alert>
         )}
       </main>
-    </div>
+    </Container>
   );
 }
 
