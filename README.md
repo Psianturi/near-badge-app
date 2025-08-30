@@ -1,12 +1,26 @@
-# React + Vite
+# NEAR Badge - Frontend Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the official frontend for the NEAR Badge (POAP) project. It's a React-based web application built with a clean Vite setup that allows users and organizers to interact with the NEAR Badge smart contract.
 
-Currently, two official plugins are available:
+## Core Features
+- **Wallet Connection:** Connects to the NEAR Testnet using the official `@near-wallet-selector`.
+- **Event Creation:** Allows authorized organizers to create new events directly on-chain.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Technology Stack
+- **Framework:** React (with Vite)
+- **Wallet Integration:** `@near-wallet-selector`
+- **Styling:** Chakra UI & Bootstrap
 
-## Expanding the ESLint configuration
+## Smart Contract
+This frontend connects to the smart contract located at the following repository:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+➡️ **[near-badge-contract](https://github.com/Psianturi/near-badge-contract)**
+
+- **Current Testnet Address:** `v4.poap-badge.testnet` *(atau alamat kontrak terakhir yang berfungsi)*
+
+## Running Locally
+To run this project on your local machine:
+1. Clone the repository.
+2. Navigate to the directory: `cd near-badge-app`
+3. Install dependencies: `npm install`
+4. Run the development server: `npm run dev`
