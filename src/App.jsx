@@ -9,9 +9,8 @@ import {
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
 
-
 const GAS = "30000000000000"; // 30 TGas
-// const DEPOSIT = "100000000000000000000000"; // 0.1 NEAR
+// const DEPOSIT = "100000000000000000000000"; // 0.1 NEAR | 
 
 function App() {
   const { selector, modal, accountId } = useWalletSelector();
@@ -38,9 +37,10 @@ function App() {
             type: "FunctionCall",
             params: {
               methodName: "create_event",
+              // Pastikan Anda menyertakan 'deposit' jika method contract membutuhkannya
               args: { name: eventName, description: eventDescription },
               gas: GAS,
-              deposit: DEPOSIT,
+              deposit: "0", // Atau DEPOSIT jika diperlukan
             },
           },
         ],
@@ -70,32 +70,49 @@ function App() {
   };
 
   return (
-    <Container maxW="container.lg" mt={10} py={6}>
-      <Flex mb={8}>
-        <Box>
-          <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
-          <Text color="gray.500">Create and manage your community events on NEAR.</Text>
-        </Box>
-        <Spacer />
-        <Box>
-          {accountId ? (
-            <Button colorScheme="gray" onClick={handleSignOut}>
-              Log out {accountId}
-            </Button>
-          ) : (
-            <Button colorScheme="blue" onClick={handleSignIn}>
-              Log in
-            </Button>
-          )}
-        </Box>
-      </Flex>
+    // 1. Flex container utama untuk menengahkan konten
+    <Flex
+      as="main"
+      align="center"
+      justify="center"
+      minH="100vh" // Tinggi minimal sebesar layar
+      bg="gray.50" // Warna latar belakang halaman
+      p={4}
+    >
+      {/* 2. Box yang berfungsi sebagai "kartu" konten */}
+      <Box
+        w="full"
+        maxW="container.md" // Lebar maksimum konten
+        bg="white"
+        p={8}
+        borderWidth="1px"
+        borderRadius="xl" // Sudut lebih tumpul
+        boxShadow="lg" // Efek bayangan
+      >
+        <Flex mb={8} align="center">
+          <Box>
+            <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
+            <Text color="gray.500">Create and manage your community events on NEAR.</Text>
+          </Box>
+          <Spacer />
+          <Box>
+            {accountId ? (
+              <Button colorScheme="gray" onClick={handleSignOut}>
+                Log out ({accountId.substring(0, 10)}...)
+              </Button>
+            ) : (
+              <Button colorScheme="blue" onClick={handleSignIn}>
+                Log in
+              </Button>
+            )}
+          </Box>
+        </Flex>
 
-      <main>
-        {accountId ? (
-          <Box p={6} borderWidth="1px" borderRadius="lg" boxShadow="md">
+        <main>
+          {accountId ? (
             <VStack spacing={4} align="stretch">
               <Heading as="h2" size="md">Create a New Event</Heading>
-              <Text fontSize="sm">Contract: {ContractName}</Text>
+              <Text fontSize="sm" color="gray.600">Contract: <strong>{ContractName}</strong></Text>
 
               <FormControl isRequired>
                 <FormLabel>Event Name</FormLabel>
@@ -121,31 +138,32 @@ function App() {
                 colorScheme="green"
                 onClick={handleCreateEvent}
                 isLoading={showSpinner}
+                loadingText="Creating..."
               >
                 Create Event
               </Button>
             </VStack>
-          </Box>
-        ) : (
-          <Alert status="info" borderRadius="md">
-            <InfoIcon mr={3} />
-            Please log in to create an event.
-          </Alert>
-        )}
+          ) : (
+            <Alert status="info" borderRadius="md">
+              <InfoIcon mr={3} />
+              Please log in to create an event.
+            </Alert>
+          )}
 
-        {transaction && (
-          <Alert status="success" mt={4} borderRadius="md">
-            <InfoIcon mr={3} />
-            <Box>
-              <Text>Transaction successful!</Text>
-              <Link href={transaction} isExternal color="teal.500">
-                View Transaction on Explorer
-              </Link>
-            </Box>
-          </Alert>
-        )}
-      </main>
-    </Container>
+          {transaction && (
+            <Alert status="success" mt={4} borderRadius="md">
+              <InfoIcon mr={3} />
+              <Box>
+                <Text>Transaction successful!</Text>
+                <Link href={transaction} isExternal color="teal.500">
+                  View Transaction on Explorer
+                </Link>
+              </Box>
+            </Alert>
+          )}
+        </main>
+      </Box>
+    </Flex>
   );
 }
 
