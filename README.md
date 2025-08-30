@@ -32,6 +32,6 @@ To run this project on your local machine:
 ## Screenshots
 Here’s a preview of the current frontend:
 
-(image-2.png)
-(image-3.png)
-(image-4.png)
+![Homepage Screenshot](./image-2.png)
+![Organizer Dashboard](./image-3.png)
+![Claim Badge Flow](./image-4.png)

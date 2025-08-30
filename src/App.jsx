@@ -111,7 +111,7 @@ function App() {
             });
             setIsOwner(owner === accountId);
           } catch {
-            // contract belum expose get_owner: sembunyikan panel owner
+           
             setIsOwner(false);
           }
         } else {
@@ -223,8 +223,7 @@ function App() {
               methodName: "claim_badge",
               args: { event_name: claimEvent.trim() },
               gas: GAS,
-              // contract kamu tidak mensyaratkan deposit; set 0.
-              deposit: "0",
+              deposit: "0", //
             },
           },
         ],
