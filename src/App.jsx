@@ -1,30 +1,19 @@
-// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { useWalletSelector } from "./contexts/WalletSelectorContext.jsx";
 import { ContractName, NetworkId } from "./config.js";
-
-// 1. Tambahkan 'Image' dari Chakra UI
 import {
   Box, Button, Container, FormControl, FormLabel, Heading, Input, Text, Textarea, VStack, Link,
-  Alert, Flex, Spacer, Badge, HStack, Divider, List, ListItem, ListIcon, useToast, Image
+  Flex, Spacer, Badge, HStack, Divider, useToast, Image
 } from "@chakra-ui/react";
-import { InfoIcon, CheckCircleIcon } from "@chakra-ui/icons";
-
-// 2. Import file logo dari folder assets
 import NearLogo from "./assets/near_logo.svg";
 
-/**
- * Gas / deposit helpers
- */
-const GAS = "30000000000000"; // 30 TGas
-const NO_DEPOSIT = "0";
-const DEPOSIT_FOR_BADGE = "100000000000000000000000"; // 0.1 NEAR
+// 1. Impor component & hook
+import { EventList } from "./components/EventList.jsx";
+import { useMagicLink } from "./hooks/useMagicLink.js";
 
-/**
- * Helper: generic view call
- */
+
+const ExplorerLink = ({ txId }) => ( <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">View Transaction on Explorer</Link> );
 async function callViewWithFallback(selector, contractId, method, args = {}) {
-  // ... (Fungsi ini tidak berubah, sudah optimal)
   try {
     if (selector && selector.isSignedIn()) {
       const wallet = await selector.wallet();
@@ -52,24 +41,9 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes)));
   } catch (e) { console.error("RPC fallback failed:", e); throw e; }
 }
-
-/**
- * Komponen kecil untuk menampilkan link explorer di dalam notifikasi toast.
- * Ini membuat kode lebih bersih.
- */
-const ExplorerLink = ({ txId }) => (
-  <Link
-    href={`https://explorer.testnet.near.org/transactions/${txId}`}
-    isExternal
-    color="cyan.200"
-    textDecoration="underline"
-    mt={2}
-    display="block"
-  >
-    View Transaction on Explorer
-  </Link>
-);
-
+const GAS = "30000000000000";
+const NO_DEPOSIT = "0";
+const DEPOSIT_FOR_BADGE = "100000000000000000000000";
 
 export default function App() {
   const { selector, modal, accountId } = useWalletSelector();
@@ -86,9 +60,11 @@ export default function App() {
   const [isOwner, setIsOwner] = useState(false);
   const [isOrganizer, setIsOrganizer] = useState(false);
 
+  // 2. Call hook magic link 
+  useMagicLink(setMode, setClaimEventName);
+
   useEffect(() => {
     const load = async () => {
-      // ... (useEffect tidak berubah, sudah optimal)
       if (!selector) return;
       setLoadingEvents(true);
       try {
@@ -123,23 +99,9 @@ export default function App() {
     if (!name || !description) return toast({ status: "warning", title: "Fill name & description" });
     setCreating(true);
     try {
-      const result = await sendTransaction([{
-        type: "FunctionCall",
-        params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT },
-      }]);
-      
+      const result = await sendTransaction([{ type: "FunctionCall", params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT } }]);
       const txId = result.transaction_outcome?.id || result.transaction?.hash;
-
-      toast({
-        duration: 9000, isClosable: true,
-        render: () => (
-          <Box color="white" p={4} bg="green.500" borderRadius="md" boxShadow="lg">
-            <Text fontWeight="bold">Event Created Successfully!</Text>
-            {txId && <ExplorerLink txId={txId} />}
-          </Box>
-        ),
-      });
-
+      toast({ duration: 9000, isClosable: true, render: () => ( <Box color="white" p={4} bg="green.500" borderRadius="md" boxShadow="lg"><Text fontWeight="bold">Event Created Successfully!</Text>{txId && <ExplorerLink txId={txId} />}</Box> )});
       const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");
@@ -154,22 +116,9 @@ export default function App() {
     if (!claimEventName) return toast({ status: "warning", title: "Fill event name or paste magic link" });
     setClaiming(true);
     try {
-      const result = await sendTransaction([{
-        type: "FunctionCall",
-        params: { methodName: "claim_badge", args: { event_name: claimEventName }, gas: GAS, deposit: DEPOSIT_FOR_BADGE, },
-      }]);
-      
+      const result = await sendTransaction([{ type: "FunctionCall", params: { methodName: "claim_badge", args: { event_name: claimEventName }, gas: GAS, deposit: DEPOSIT_FOR_BADGE } }]);
       const txId = result.transaction_outcome?.id || result.transaction?.hash;
-
-      toast({
-        duration: 9000, isClosable: true,
-        render: () => (
-          <Box color="white" p={4} bg="teal.500" borderRadius="md" boxShadow="lg">
-            <Text fontWeight="bold">Claim Request Successful!</Text>
-            {txId && <ExplorerLink txId={txId} />}
-          </Box>
-        ),
-      });
+      toast({ duration: 9000, isClosable: true, render: () => ( <Box color="white" p={4} bg="teal.500" borderRadius="md" boxShadow="lg"><Text fontWeight="bold">Claim Request Successful!</Text>{txId && <ExplorerLink txId={txId} />}</Box> )});
       setClaimEventName("");
     } catch (e) {
       toast({ title: "Error claiming badge", description: (e?.message) || String(e), status: "error" });
@@ -188,7 +137,6 @@ export default function App() {
     <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
       <Container maxW="container.md">
         <Flex mb={6} align="center">
-          {/* 3. Header diperbarui dengan Logo dan Judul di dalam HStack */}
           <HStack spacing={4}>
             <Image src={NearLogo} boxSize="40px" alt="NEAR Protocol Logo" />
             <Box>
@@ -198,18 +146,8 @@ export default function App() {
           </HStack>
           <Spacer />
           <HStack spacing={3}>
-            {accountId && (
-              <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>
-                {isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
-              </Badge>
-            )}
-            <Box>
-              {accountId ? (
-                <Button onClick={handleSignOut}>Log out ({accountId.substring(0, 10)}...)</Button>
-              ) : (
-                <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>
-              )}
-            </Box>
+            {accountId && ( <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge> )}
+            <Box>{accountId ? ( <Button onClick={handleSignOut}>Log out ({accountId.substring(0, 10)}...)</Button> ) : ( <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button> )}</Box>
           </HStack>
         </Flex>
 
@@ -246,27 +184,17 @@ export default function App() {
           <Divider my={6} />
 
           <Heading as="h3" size="md" mb={3}>Available Events</Heading>
-          {loadingEvents ? (
-            <Text>Loading events...</Text>
-          ) : events.length > 0 ? (
-            <List spacing={2}>
-              {events.map(([eventName, ev]) => (
-                <ListItem key={eventName} p={3} borderRadius="md" _hover={{ bg: "gray.50" }}>
-                  <HStack align="start">
-                    <ListIcon as={CheckCircleIcon} color="green.500" mt={1} />
-                    <Box>
-                      <Text fontWeight="bold">{eventName}</Text>
-                      <Text as="span" color="gray.600" fontSize="sm">{ev.description}</Text>
-                    </Box>
-                  </HStack>
-                </ListItem>
-              ))}
-            </List>
-          ) : (
-            <Text color="gray.500">No events found. Create one to get started!</Text>
-          )}
+          
+          {}
+          <EventList
+            events={events}
+            isLoading={loadingEvents}
+            isOwner={isOwner}
+            isOrganizer={isOrganizer}
+          />
         </Box>
       </Container>
     </Box>
   );
 }
+
