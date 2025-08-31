@@ -1,433 +1,255 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useWalletSelector } from "./contexts/WalletSelectorContext.jsx";
 import { ContractName, NetworkId } from "./config.js";
 import {
-  Box, Button, Flex, Spacer, VStack, Heading, Text, Alert, Link,
-  FormControl, FormLabel, Input, Textarea, Divider, List, ListItem, ListIcon,
-  HStack, useToast, Badge
+  Box, Button, Container, FormControl, FormLabel, Heading, Input, Text, Textarea, VStack, Link,
+  Alert, Flex, Spacer, Badge, HStack, Divider, List, ListItem, ListIcon, useToast
 } from "@chakra-ui/react";
 import { InfoIcon, CheckCircleIcon } from "@chakra-ui/icons";
 
+/**
+ * Gas / deposit helpers
+ */
 const GAS = "30000000000000"; // 30 TGas
+const NO_DEPOSIT = "0";
+// BUG FIX: Add the correct deposit amount for claiming a badge (NFT minting storage).
+const DEPOSIT_FOR_BADGE = "100000000000000000000000"; // 0.1 NEAR
 
-// ---- tiny RPC helper for view calls (no near-api-js needed) ----
-const getNodeUrl = (networkId) =>
-  networkId === "testnet"
-    ? "https://rpc.testnet.near.org"
-    : networkId === "mainnet"
-    ? "https://rpc.mainnet.near.org"
-    : "http://localhost:3030";
 
-async function viewFunction({ networkId, contractId, method, args = {} }) {
-  const nodeUrl = getNodeUrl(networkId);
-  const res = await fetch(nodeUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dontcare",
-      method: "query",
-      params: {
-        request_type: "call_function",
-        account_id: contractId,
-        method_name: method,
-        args_base64: btoa(JSON.stringify(args)),
-        finality: "optimistic",
-      },
-    }),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.data || json.error.message);
-  const resultBytes = json.result.result;
-  const text = new TextDecoder().decode(Uint8Array.from(resultBytes));
+// ... di dalam App.jsx
+
+async function callViewWithFallback(selector, contractId, method, args = {}) {
   try {
-    return JSON.parse(text);
-  } catch {
-    return text;
+    if (selector && selector.isSignedIn()) {
+      const wallet = await selector.wallet();
+      if (wallet && typeof wallet.viewMethod === "function") {
+        return await wallet.viewMethod({ contractId, method, args });
+      }
+    }
+  } catch (e) {
+    console.warn("Falling back to RPC due to wallet.viewMethod error:", e);
+  }
+
+  try {
+    const rpcUrl = NetworkId === "testnet" ? "https://rpc.testnet.near.org" : "https://rpc.mainnet.near.org";
+    const resp = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "dontcare",
+        method: "query",
+        params: {
+          request_type: "call_function",
+          finality: "optimistic",
+          account_id: contractId,
+          method_name: method,
+          args_base64: btoa(JSON.stringify(args)),
+        },
+      }),
+    });
+    const json = await resp.json();
+    if (json.error) throw new Error(JSON.stringify(json.error));
+
+    // Perbaikan ada di sini: Langsung gunakan `result.result` (array of bytes)
+    const bytes = json.result?.result;
+    if (!bytes) return null;
+    
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes)));
+  } catch (e) {
+    console.error("RPC fallback failed:", e);
+    throw e;
   }
 }
 
-function App() {
-  const toast = useToast();
+export default function App() {
   const { selector, modal, accountId } = useWalletSelector();
+  const toast = useToast();
 
-  // UI mode: "claim" (default) or "create"
   const [mode, setMode] = useState("claim");
-
-  // form states
-  const [eventName, setEventName] = useState("");
-  const [eventDescription, setEventDescription] = useState("");
-  const [claimEvent, setClaimEvent] = useState("");
-
-  // owner/admin
-  const [isOrganizer, setIsOrganizer] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  const [newOrganizer, setNewOrganizer] = useState("");
-
-  // lists / loading
   const [events, setEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [claimEventName, setClaimEventName] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [isOrganizer, setIsOrganizer] = useState(false);
 
-  // read ?event=... for magic-link style prefill
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromLink = params.get("event");
-    if (fromLink) {
-      setClaimEvent(fromLink);
-      setMode("claim");
-    }
-  }, []);
-
-  // role detection + events load
-  useEffect(() => {
-    if (!selector) return;
-
-    const boot = async () => {
+    const load = async () => {
+      if (!selector) return;
       setLoadingEvents(true);
+
       try {
-        // role (organizer)
+        const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
+        
+        // OPTIMIZATION: Fetch roles in parallel if user is logged in.
+        let rolesPromise = Promise.resolve([false, false]);
         if (accountId) {
-          try {
-            const org = await viewFunction({
-              networkId: NetworkId,
-              contractId: ContractName,
-              method: "is_organizer",
-              args: { account_id: accountId },
-            });
-            setIsOrganizer(!!org);
-          } catch {
-            setIsOrganizer(false);
-          }
-
-          // owner check — only if contract exposes `get_owner`
-          try {
-            const owner = await viewFunction({
-              networkId: NetworkId,
-              contractId: ContractName,
-              method: "get_owner",
-              args: {},
-            });
-            setIsOwner(owner === accountId);
-          } catch {
-           
-            setIsOwner(false);
-          }
-        } else {
-          setIsOrganizer(false);
-          setIsOwner(false);
+          rolesPromise = Promise.all([
+            callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
+            callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId })
+          ]);
         }
+        
+        const [evs, [ownerCheck, orgCheck]] = await Promise.all([evsPromise, rolesPromise]);
+        
+        setEvents(Array.isArray(evs) ? evs : []);
+        setIsOwner(Boolean(ownerCheck));
+        setIsOrganizer(Boolean(orgCheck));
 
-        // load events
-        try {
-          const list = await viewFunction({
-            networkId: NetworkId,
-            contractId: ContractName,
-            method: "get_all_events",
-          });
-          setEvents(Array.isArray(list) ? list : []);
-        } catch (e) {
-          console.error("get_all_events failed", e);
-          setEvents([]);
-        }
+      } catch (e) {
+        console.error("Failed to fetch events/roles:", e);
+        toast({ title: "Failed to load data", description: String(e), status: "error" });
+        setEvents([]);
+        setIsOwner(false);
+        setIsOrganizer(false);
       } finally {
         setLoadingEvents(false);
       }
     };
 
-    boot();
+    load();
   }, [selector, accountId]);
 
-  // default mode: organizer starts on "create", others on "claim"
-  useEffect(() => {
-    if (accountId) {
-      setMode(isOrganizer ? "create" : "claim");
-    } else {
-      setMode("claim");
+  async function sendTransaction(actions) {
+    if (!selector || !accountId) throw new Error("Wallet not ready or not signed in");
+    const wallet = await selector.wallet();
+    return wallet.signAndSendTransaction({ signerId: accountId, receiverId: ContractName, actions });
+  }
+
+  const handleCreate = async () => {
+    if (!name || !description) return toast({ status: "warning", title: "Fill name & description" });
+    setCreating(true);
+    try {
+      await sendTransaction([{
+        type: "FunctionCall",
+        params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT },
+      }]);
+      toast({ title: `Event "${name}" created`, status: "success" });
+      const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+      setEvents(Array.isArray(evs) ? evs : []);
+      setName("");
+      setDescription("");
+    } catch (e) {
+      toast({ title: "Error creating event", description: (e?.message) || String(e), status: "error" });
+    } finally {
+      setCreating(false);
     }
-  }, [accountId, isOrganizer]);
+  };
+
+  const handleClaim = async () => {
+    if (!claimEventName) return toast({ status: "warning", title: "Fill event name or paste magic link" });
+    setClaiming(true);
+    try {
+      await sendTransaction([{
+        type: "FunctionCall",
+        params: {
+          methodName: "claim_badge",
+          args: { event_name: claimEventName },
+          gas: GAS,
+          // BUG FIX: The deposit for claim_badge must be > 0 for storage.
+          deposit: DEPOSIT_FOR_BADGE,
+        },
+      }]);
+      toast({ title: `Claim request sent for "${claimEventName}"`, status: "success" });
+      setClaimEventName("");
+    } catch (e) {
+      toast({ title: "Error claiming badge", description: (e?.message) || String(e), status: "error" });
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   const handleSignIn = () => modal.show();
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
-    await wallet.signOut();
+    wallet.signOut();
   };
-
-  const refreshEvents = async () => {
-    try {
-      const list = await viewFunction({
-        networkId: NetworkId,
-        contractId: ContractName,
-        method: "get_all_events",
-      });
-      setEvents(Array.isArray(list) ? list : []);
-    } catch {
-      setEvents([]);
-    }
-  };
-
-  const notify = (title, status = "success") =>
-    toast({ title, status, isClosable: true, duration: 3000 });
-
-  const createEvent = async () => {
-    if (!eventName.trim() || !eventDescription.trim()) {
-      notify("Please fill in both name and description.", "warning");
-      return;
-    }
-    setBusy(true);
-    try {
-      const wallet = await selector.wallet();
-      await wallet.signAndSendTransaction({
-        signerId: accountId,
-        receiverId: ContractName,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "create_event",
-              args: { name: eventName.trim(), description: eventDescription.trim() },
-              gas: GAS,
-              deposit: "0",
-            },
-          },
-        ],
-      });
-      notify(`Event "${eventName}" created!`);
-      setEventName("");
-      setEventDescription("");
-      await refreshEvents();
-    } catch (e) {
-      console.error(e);
-      notify(e.message || "Failed to create event", "error");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const claimBadge = async () => {
-    if (!claimEvent.trim()) {
-      notify("Please input an event name (or open via magic link).", "warning");
-      return;
-    }
-    setBusy(true);
-    try {
-      const wallet = await selector.wallet();
-      await wallet.signAndSendTransaction({
-        signerId: accountId,
-        receiverId: ContractName,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "claim_badge",
-              args: { event_name: claimEvent.trim() },
-              gas: GAS,
-              deposit: "0", //
-            },
-          },
-        ],
-      });
-      notify(`Badge claimed for "${claimEvent}"!`);
-      setClaimEvent("");
-    } catch (e) {
-      console.error(e);
-      notify(e.message || "Failed to claim badge", "error");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const addOrganizer = async () => {
-    if (!newOrganizer.trim()) {
-      notify("Please enter the organizer account ID.", "warning");
-      return;
-    }
-    setBusy(true);
-    try {
-      const wallet = await selector.wallet();
-      await wallet.signAndSendTransaction({
-        signerId: accountId,
-        receiverId: ContractName,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "add_organizer",
-              args: { account_id: newOrganizer.trim() },
-              gas: GAS,
-              deposit: "0",
-            },
-          },
-        ],
-      });
-      notify(`Added organizer: ${newOrganizer}`);
-      setNewOrganizer("");
-      // optional: re-check role if you just added yourself in another contract
-      if (newOrganizer.trim() === accountId) setIsOrganizer(true);
-    } catch (e) {
-      console.error(e);
-      notify(e.message || "Failed to add organizer", "error");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const headerRight = useMemo(
-    () => (
-      <Box>
-        {accountId ? (
-          <HStack spacing={2}>
-            {isOwner && <Badge colorScheme="purple">Owner</Badge>}
-            {isOrganizer && <Badge colorScheme="green">Organizer</Badge>}
-            <Button size="sm" onClick={handleSignOut}>
-              Log out ({accountId.substring(0, 10)}…)
-            </Button>
-          </HStack>
-        ) : (
-          <Button colorScheme="blue" onClick={handleSignIn}>
-            Log in
-          </Button>
-        )}
-      </Box>
-    ),
-    [accountId, isOwner, isOrganizer]
-  );
 
   return (
-    <Flex as="main" align="center" justify="center" minH="100vh" bg="gray.50" p={4}>
-      <Box w="full" maxW="container.lg" bg="white" p={8} borderWidth="1px" borderRadius="xl" boxShadow="lg">
-        <Flex mb={8} align="center">
+    // UI POLISH: Add a page background color to make the container stand out.
+    <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
+      <Container maxW="container.md">
+        <Flex mb={6} align="center">
           <Box>
             <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
-            <Text color="gray.500">
-              Contract: <b>{ContractName}</b> ({NetworkId})
-            </Text>
+            <Text color="gray.500">Contract: <Text as="span" fontWeight="600">{ContractName}</Text> <Text as="span" color="gray.400">({NetworkId})</Text></Text>
           </Box>
           <Spacer />
-          {headerRight}
+          <HStack spacing={3}>
+            {accountId && (
+              <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>
+                {isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
+              </Badge>
+            )}
+            <Box>
+              {accountId ? (
+                <Button onClick={handleSignOut}>Log out ({accountId.substring(0, 10)}...)</Button>
+              ) : (
+                <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>
+              )}
+            </Box>
+          </HStack>
         </Flex>
 
-        {/* Mode switch */}
-        <HStack spacing={3} mb={6}>
-          <Button
-            variant={mode === "claim" ? "solid" : "outline"}
-            colorScheme="teal"
-            onClick={() => setMode("claim")}
-          >
-            Claim Badge
-          </Button>
-          <Button
-            variant={mode === "create" ? "solid" : "outline"}
-            colorScheme="green"
-            onClick={() => setMode("create")}
-            isDisabled={!isOrganizer}
-            title={!isOrganizer ? "Only organizers can create events" : ""}
-          >
-            Create Event
-          </Button>
+        <HStack mb={6}>
+          <Button variant={mode === "claim" ? "solid" : "outline"} colorScheme="teal" onClick={() => setMode("claim")}>Claim Badge</Button>
+          <Button variant={mode === "create" ? "solid" : "outline"} colorScheme="green" onClick={() => setMode("create")} isDisabled={!accountId || (!isOwner && !isOrganizer)}>Create Event</Button>
         </HStack>
 
-        {!accountId && (
-          <Alert status="info" borderRadius="md" mb={6}>
-            <InfoIcon mr={3} />
-            Please log in to interact with the contract.
-          </Alert>
-        )}
-
-        {/* Claim Badge */}
-        <VStack spacing={4} align="stretch" hidden={mode !== "claim"}>
-          <Heading as="h2" size="md">Claim your badge</Heading>
-          <FormControl isRequired>
-            <FormLabel>Event Name (or from magic link)</FormLabel>
-            <Input
-              placeholder="e.g., NEAR Dev Community Meetup"
-              value={claimEvent}
-              onChange={(e) => setClaimEvent(e.target.value)}
-              isDisabled={busy || !accountId}
-            />
-          </FormControl>
-          <Button colorScheme="teal" onClick={claimBadge} isLoading={busy} isDisabled={!accountId}>
-            Claim Badge
-          </Button>
-        </VStack>
-
-        {/* Create Event (organizers) */}
-        <VStack spacing={4} align="stretch" hidden={mode !== "create"} mt={mode === "create" ? 0 : -9999}>
-          <Heading as="h2" size="md">Create a New Event</Heading>
-          <FormControl isRequired>
-            <FormLabel>Event Name</FormLabel>
-            <Input
-              placeholder="e.g., NEAR Dev Community Meetup"
-              value={eventName}
-              onChange={(e) => setEventName(e.target.value)}
-              isDisabled={busy || !isOrganizer}
-            />
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Description</FormLabel>
-            <Textarea
-              placeholder="A short description of the event."
-              value={eventDescription}
-              onChange={(e) => setEventDescription(e.target.value)}
-              isDisabled={busy || !isOrganizer}
-            />
-          </FormControl>
-          <Button colorScheme="green" onClick={createEvent} isLoading={busy} isDisabled={!isOrganizer}>
-            Create Event
-          </Button>
-        </VStack>
-
-        {/* Owner panel */}
-        {isOwner && (
-          <>
-            <Divider my={8} />
+        <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="md">
+          {mode === "create" ? (
             <VStack spacing={4} align="stretch">
-              <Heading as="h3" size="sm">Owner Tools</Heading>
-              <FormControl>
-                <FormLabel>Add Organizer (account ID)</FormLabel>
-                <HStack>
-                  <Input
-                    placeholder="example.testnet"
-                    value={newOrganizer}
-                    onChange={(e) => setNewOrganizer(e.target.value)}
-                    isDisabled={busy}
-                  />
-                  <Button onClick={addOrganizer} isLoading={busy}>
-                    Add
-                  </Button>
-                </HStack>
+              <Heading as="h2" size="md">Create a New Event</Heading>
+              <FormControl isRequired>
+                <FormLabel>Event Name</FormLabel>
+                <Input placeholder="e.g., NEAR Dev Community Meetup" value={name} onChange={(e) => setName(e.target.value)} />
               </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Description</FormLabel>
+                <Textarea placeholder="A short description of the event." value={description} onChange={(e) => setDescription(e.target.value)} />
+              </FormControl>
+              <Button colorScheme="green" onClick={handleCreate} isLoading={creating}>Create Event</Button>
             </VStack>
-          </>
-        )}
+          ) : (
+            <VStack spacing={4} align="stretch">
+              <Heading as="h2" size="md">Claim a Badge</Heading>
+              <FormControl>
+                <FormLabel>Event name or magic link</FormLabel>
+                <Input placeholder="Enter event name or paste magic link" value={claimEventName} onChange={(e) => setClaimEventName(e.target.value)} />
+              </FormControl>
+              <Button colorScheme="teal" onClick={handleClaim} isLoading={claiming}>Claim Badge</Button>
+            </VStack>
+          )}
 
-        <Divider my={8} />
+          <Divider my={6} />
 
-        {/* Events list */}
-        <VStack spacing={4} align="stretch">
-          <Heading as="h3" size="md">Available Events</Heading>
+          <Heading as="h3" size="md" mb={3}>Available Events</Heading>
           {loadingEvents ? (
-            <Text>Loading events from the blockchain...</Text>
-          ) : events?.length > 0 ? (
-            <List spacing={3}>
-              {events.map(([name, details]) => (
-                <ListItem key={name} p={2} _hover={{ bg: "gray.50" }} borderRadius="md">
-                  <ListIcon as={CheckCircleIcon} color="green.500" />
-                  <strong>{name}</strong>{" "}
-                  <Text as="span" color="gray.600">— {details?.description}</Text>
+            <Text>Loading events...</Text>
+          ) : events.length > 0 ? (
+            <List spacing={2}>
+              {events.map(([eventName, ev]) => (
+                <ListItem key={eventName} p={3} borderRadius="md" _hover={{ bg: "gray.50" }}>
+                  <HStack align="start">
+                    <ListIcon as={CheckCircleIcon} color="green.500" mt={1} />
+                    <Box>
+                      <Text fontWeight="bold">{eventName}</Text>
+                      <Text as="span" color="gray.600" fontSize="sm">{ev.description}</Text>
+                    </Box>
+                  </HStack>
                 </ListItem>
               ))}
             </List>
           ) : (
             <Text color="gray.500">No events found. Create one to get started!</Text>
           )}
-        </VStack>
-
-        {/* (optional) tx success banner could live here if you store explorer URL */}
-      </Box>
-    </Flex>
+        </Box>
+      </Container>
+    </Box>
   );
 }
-
-export default App;

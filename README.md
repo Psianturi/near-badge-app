@@ -1,37 +1,69 @@
 # NEAR Badge - Frontend Application
 
-This is the official frontend for the NEAR Badge (POAP) project. It's a React-based web application built with a clean Vite setup that allows users and organizers to interact with the NEAR Badge smart contract.
+![Status: Active](https://img.shields.io/badge/status-active-success.svg)
+
+The official web application for the NEAR Badge (POAP) project. Built with React and Vite, this application provides an intuitive interface for users and event organizers to interact with the NEAR Badge smart contract.
 
 ## Core Features
-- **Wallet Connection:** Connects to the NEAR Testnet using the official `@near-wallet-selector`.
-- **Organizer Role Detection:** If your wallet is whitelisted as an organizer, you will see extra tools (e.g., Create Event).
-- **Event Creation:** Allows authorized organizers to create new events directly on-chain.
-- **Event Listing:** Displays available events fetched from the contract.
-- **Claim Badge Flow:** Users can claim their badge (via event name or magic link).
-- **Responsive UI:** Simple and intuitive design built with Chakra UI & Bootstrap.
+
+-   **Seamless Wallet Connection**: Connects to the NEAR Testnet using the official `@near-wallet-selector`.
+-   **Role-Based UI**: The interface dynamically adapts based on the user's role. Special tools, like the "Create Event" panel, are only visible to authorized `ADMIN` or `ORGANIZER` accounts.
+-   **On-Chain Event Creation**: Allows authorized organizers to create new events with details stored directly on the blockchain.
+-   **Real-time Event Listing**: Displays all available events fetched directly from the smart contract.
+-   **NFT Badge Claiming**: Enables whitelisted attendees to easily claim their unique NFT badge for an event.
+-   **Responsive Design**: A clean and modern interface built entirely with **Chakra UI**.
 
 ## Technology Stack
-- **Framework:** React (with Vite)
-- **Wallet Integration:** `@near-wallet-selector`
-- **Styling:** Chakra UI & Bootstrap
+
+-   **Framework**: React (using Vite)
+-   **UI Library**: Chakra UI
+-   **Blockchain Integration**: `@near-wallet-selector`
 
 ## Smart Contract
+
 This frontend connects to the smart contract located at the following repository:
 
-➡️ **[near-badge-contract](https://github.com/Psianturi/near-badge-contract)**
+➡️ **[github.com/Psianturi/near-badge-contract](https://github.com/Psianturi/near-badge-contract)**
 
-- **Current Testnet Address:** `posma-badge.testnet` (custom deployment)
+-   **Current Testnet Address:** `near-badge.testnet`
 
-## Running Locally
-To run this project on your local machine:
-1. Clone the repository.
-2. Navigate to the directory: `cd near-badge-app`
-3. Install dependencies: `npm install`
-4. Run the development server: `npm run dev`
+## Getting Started
+
+Follow these steps to run the project on your local machine.
+
+### Prerequisites
+
+Ensure you have the following installed:
+-   Node.js (v16 or later)
+-   npm or yarn
+
+### Installation & Running
+
+1.  **Clone this repository:**
+    ```bash
+    git clone [YOUR_FRONTEND_REPO_URL]
+    ```
+
+2.  **Navigate into the project directory:**
+    ```bash
+    cd [YOUR_FOLDER_NAME]
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173`.
 
 ## Screenshots
-Here’s a preview of the current frontend:
 
-![Homepage Screenshot](./image-2.png)
-![Organizer Dashboard](./image-3.png)
-![Claim Badge Flow](./image-4.png)
+**Attendee View**
+![alt text](01.png)
+**Admin/Organizer View**
+![alt text](02.png)
+

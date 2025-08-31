@@ -1,7 +1,7 @@
 // src/config.js
 
 
-export const ContractName = "posma-badge.testnet";
+export const ContractName = "near-badge.testnet";
 
 // Network
 export const NetworkId = 'testnet';
