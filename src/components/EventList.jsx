@@ -1,16 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Box, Text, List, ListItem, ListIcon, HStack, Spacer, IconButton, useToast, Flex 
+  Box, Text, List, ListItem, ListIcon, HStack, Spacer, IconButton, useToast, Flex, Button
 } from "@chakra-ui/react";
 import { CheckCircleIcon, LinkIcon } from "@chakra-ui/icons";
 
-export function EventList({ events, isLoading, isOwner, isOrganizer }) {
+// Tambahkan prop baru: onManageWhitelist
+export function EventList({ events, isLoading, isOwner, isOrganizer, onManageWhitelist }) {
   const toast = useToast();
+  const navigate = useNavigate();
 
   const handleShare = (eventName) => {
-    // URL
     const url = `${window.location.origin}?event=${encodeURIComponent(eventName)}`;
-    
     navigator.clipboard.writeText(url).then(() => {
       toast({
         title: "Magic Link Copied!",
@@ -20,6 +21,10 @@ export function EventList({ events, isLoading, isOwner, isOrganizer }) {
         isClosable: true,
       });
     });
+  };
+
+   const handleManage = (eventName) => {
+    navigate(`/event/${eventName}`);
   };
 
   if (isLoading) {
@@ -44,14 +49,20 @@ export function EventList({ events, isLoading, isOwner, isOrganizer }) {
             </HStack>
             <Spacer />
             {(isOwner || isOrganizer) && (
-              <IconButton
-                aria-label="Get magic link"
-                icon={<LinkIcon />}
-                size="sm"
-                variant="ghost"
-                colorScheme="teal"
-                onClick={() => handleShare(eventName)}
-              />
+              <HStack>
+                <IconButton
+                  aria-label="Get magic link"
+                  icon={<LinkIcon />}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="teal"
+                  onClick={() => handleShare(eventName)}
+                />
+                {/* INI TOMBOL BARUNYA */}
+                <Button size="sm" onClick={() => onManageWhitelist(eventName)}>
+                  Manage
+                </Button>
+              </HStack>
             )}
           </Flex>
         </ListItem>
@@ -59,3 +70,4 @@ export function EventList({ events, isLoading, isOwner, isOrganizer }) {
     </List>
   );
 }
+

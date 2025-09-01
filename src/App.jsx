@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useWalletSelector } from "./contexts/WalletSelectorContext.jsx";
 import { ContractName, NetworkId } from "./config.js";
 import {
-  Box, Button, Container, FormControl, FormLabel, Heading, Input, Text, Textarea, VStack, Link,
-  Flex, Spacer, Badge, HStack, Divider, useToast, Image
+  Box, Button, Container, Flex, Spacer, Badge, HStack, Image, Heading, Text, useToast, Link
 } from "@chakra-ui/react";
 import NearLogo from "./assets/near_logo.svg";
 
-// 1. Impor component & hook
-import { EventList } from "./components/EventList.jsx";
-import { useMagicLink } from "./hooks/useMagicLink.js";
+// Impor halaman-halaman baru Anda
+import DashboardPage from "./pages/DashboardPage.jsx";
+import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
 
-
+// Fungsi-fungsi helper dan konstanta
 const ExplorerLink = ({ txId }) => ( <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">View Transaction on Explorer</Link> );
 async function callViewWithFallback(selector, contractId, method, args = {}) {
   try {
@@ -46,22 +46,21 @@ const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
 
 export default function App() {
+  // Semua state dan handler utama tetap berada di App.jsx
+  // agar datanya tidak hilang saat berpindah halaman.
   const { selector, modal, accountId } = useWalletSelector();
   const toast = useToast();
-
-  const [mode, setMode] = useState("claim");
+  
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [claimEventName, setClaimEventName] = useState("");
-  const [claiming, setClaiming] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [isOrganizer, setIsOrganizer] = useState(false);
-
-  // 2. Call hook magic link 
-  useMagicLink(setMode, setClaimEventName);
+  
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [claimEventName, setClaimEventName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -81,9 +80,7 @@ export default function App() {
         setIsOwner(Boolean(ownerCheck));
         setIsOrganizer(Boolean(orgCheck));
       } catch (e) {
-        console.error("Failed to fetch events/roles:", e);
         toast({ title: "Failed to load data", description: String(e), status: "error" });
-        setEvents([]); setIsOwner(false); setIsOrganizer(false);
       } finally { setLoadingEvents(false); }
     };
     load();
@@ -107,9 +104,7 @@ export default function App() {
       setName(""); setDescription("");
     } catch (e) {
       toast({ title: "Error creating event", description: (e?.message) || String(e), status: "error" });
-    } finally {
-      setCreating(false);
-    }
+    } finally { setCreating(false); }
   };
 
   const handleClaim = async () => {
@@ -122,11 +117,9 @@ export default function App() {
       setClaimEventName("");
     } catch (e) {
       toast({ title: "Error claiming badge", description: (e?.message) || String(e), status: "error" });
-    } finally {
-      setClaiming(false);
-    }
+    } finally { setClaiming(false); }
   };
-
+  
   const handleSignIn = () => modal.show();
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -134,67 +127,59 @@ export default function App() {
   };
 
   return (
-    <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
-      <Container maxW="container.md">
-        <Flex mb={6} align="center">
-          <HStack spacing={4}>
-            <Image src={NearLogo} boxSize="40px" alt="NEAR Protocol Logo" />
-            <Box>
-              <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
-              <Text color="gray.500">Contract: <Text as="span" fontWeight="600">{ContractName}</Text> <Text as="span" color="gray.400">({NetworkId})</Text></Text>
-            </Box>
-          </HStack>
-          <Spacer />
-          <HStack spacing={3}>
-            {accountId && ( <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge> )}
-            <Box>{accountId ? ( <Button onClick={handleSignOut}>Log out ({accountId.substring(0, 10)}...)</Button> ) : ( <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button> )}</Box>
-          </HStack>
-        </Flex>
+    <Router>
+      <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
+        <Container maxW="container.md">
+          {/* Header ini akan muncul di semua halaman */}
+          <Flex mb={6} align="center">
+            <HStack spacing={4}>
+              <Image src={NearLogo} boxSize="40px" alt="NEAR Logo" />
+              <Box>
+                <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
+                <Text color="gray.500">Contract: {ContractName}</Text>
+              </Box>
+            </HStack>
+            <Spacer />
+            <HStack spacing={3}>
+              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
+              {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
+            </HStack>
+          </Flex>
 
-        <HStack mb={6}>
-          <Button variant={mode === "claim" ? "solid" : "outline"} colorScheme="teal" onClick={() => setMode("claim")}>Claim Badge</Button>
-          <Button variant={mode === "create" ? "solid" : "outline"} colorScheme="green" onClick={() => setMode("create")} isDisabled={!accountId || (!isOwner && !isOrganizer)}>Create Event</Button>
-        </HStack>
-
-        <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="md">
-          {mode === "create" ? (
-            <VStack spacing={4} align="stretch">
-              <Heading as="h2" size="md">Create a New Event</Heading>
-              <FormControl isRequired>
-                <FormLabel>Event Name</FormLabel>
-                <Input placeholder="e.g., NEAR Dev Community Meetup" value={name} onChange={(e) => setName(e.target.value)} />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>Description</FormLabel>
-                <Textarea placeholder="A short description of the event." value={description} onChange={(e) => setDescription(e.target.value)} />
-              </FormControl>
-              <Button colorScheme="green" onClick={handleCreate} isLoading={creating}>Create Event</Button>
-            </VStack>
-          ) : (
-            <VStack spacing={4} align="stretch">
-              <Heading as="h2" size="md">Claim a Badge</Heading>
-              <FormControl>
-                <FormLabel>Event name or magic link</FormLabel>
-                <Input placeholder="Enter event name or paste magic link" value={claimEventName} onChange={(e) => setClaimEventName(e.target.value)} />
-              </FormControl>
-              <Button colorScheme="teal" onClick={handleClaim} isLoading={claiming}>Claim Badge</Button>
-            </VStack>
-          )}
-
-          <Divider my={6} />
-
-          <Heading as="h3" size="md" mb={3}>Available Events</Heading>
-          
-          {}
-          <EventList
-            events={events}
-            isLoading={loadingEvents}
-            isOwner={isOwner}
-            isOrganizer={isOrganizer}
-          />
-        </Box>
-      </Container>
-    </Box>
+          {/* Router akan menentukan halaman mana yang ditampilkan berdasarkan URL */}
+          <Routes>
+            <Route path="/" element={
+              <DashboardPage 
+                // Kita kirim semua state dan handler yang dibutuhkan oleh Dashboard
+                events={events}
+                loadingEvents={loadingEvents}
+                isOwner={isOwner}
+                isOrganizer={isOrganizer}
+                handleCreate={handleCreate}
+                creating={creating}
+                name={name}
+                setName={setName}
+                description={description}
+                setDescription={setDescription}
+                handleClaim={handleClaim}
+                claiming={claiming}
+                claimEventName={claimEventName}
+                setClaimEventName={setClaimEventName}
+              />
+            } />
+            <Route path="/event/:eventName" element={
+              <WhitelistManagerPage 
+                // Kita kirim fungsi-fungsi yang dibutuhkan oleh halaman Whitelist
+                callViewWithFallback={callViewWithFallback}
+                sendTransaction={sendTransaction}
+                selector={selector}
+                contractId={ContractName}
+              />
+            } />
+          </Routes>
+        </Container>
+      </Box>
+    </Router>
   );
 }
 
