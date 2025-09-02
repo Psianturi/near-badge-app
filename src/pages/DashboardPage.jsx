@@ -5,10 +5,8 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from 'react-router-dom';
 
-// Komponen EventList sekarang diimpor di sini
 import { EventList } from "../components/EventList.jsx";
 
-// Komponen-komponen ini sekarang menjadi bagian dari Dasbor
 const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName }) => (
   <VStack spacing={4} align="stretch">
     <Heading as="h2" size="md">Claim a Badge</Heading>
@@ -36,7 +34,6 @@ const CreateEventView = ({ handleCreate, creating, name, setName, description, s
 );
 
 export default function DashboardPage({
-  // Props yang diterima dari App.jsx
   events, loadingEvents, isOwner, isOrganizer,
   handleCreate, creating, name, setName, description, setDescription,
   handleClaim, claiming, claimEventName, setClaimEventName
@@ -45,7 +42,7 @@ export default function DashboardPage({
   const navigate = useNavigate();
 
   const onManageWhitelist = (eventName) => {
-    // Fungsi untuk pindah ke halaman Whitelist Manager
+    
     navigate(`/event/${eventName}`);
   };
 
@@ -69,7 +66,7 @@ export default function DashboardPage({
           isLoading={loadingEvents}
           isOwner={isOwner}
           isOrganizer={isOrganizer}
-          // Tambahkan prop baru untuk menangani klik tombol "Manage"
+          
           onManageWhitelist={onManageWhitelist}
         />
       </Box>

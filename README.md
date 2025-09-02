@@ -47,7 +47,7 @@ Ensure you have the following installed:
 
 1.  **Clone this repository:**
     ```bash
-    git clone [YOUR_FRONTEND_REPO_URL]
+    git clone [REPO_URL]
     ```
 
 2.  **Navigate into the project directory:**
@@ -73,3 +73,4 @@ Ensure you have the following installed:
 
 **Admin/Organizer View**
 ![alt text](02.png)
+![alt text](image-1.png)

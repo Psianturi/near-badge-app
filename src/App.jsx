@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link as RouterLink } from 'react-router-dom';
 import { useWalletSelector } from "./contexts/WalletSelectorContext.jsx";
 import { ContractName, NetworkId } from "./config.js";
 import {
   Box, Button, Container, Flex, Spacer, Badge, HStack, Image, Heading, Text, useToast, Link
 } from "@chakra-ui/react";
+import AdminPage from "./pages/AdminPage.jsx";
 import NearLogo from "./assets/near_logo.svg";
-
-// Impor halaman-halaman baru Anda
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
 
-// Fungsi-fungsi helper dan konstanta
+// helper & constanta
 const ExplorerLink = ({ txId }) => ( <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">View Transaction on Explorer</Link> );
 async function callViewWithFallback(selector, contractId, method, args = {}) {
   try {
@@ -46,8 +45,7 @@ const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
 
 export default function App() {
-  // Semua state dan handler utama tetap berada di App.jsx
-  // agar datanya tidak hilang saat berpindah halaman.
+
   const { selector, modal, accountId } = useWalletSelector();
   const toast = useToast();
   
@@ -127,7 +125,7 @@ export default function App() {
   };
 
   return (
-    <Router>
+     <Router>
       <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
         <Container maxW="container.md">
           {/* Header ini akan muncul di semua halaman */}
@@ -140,17 +138,32 @@ export default function App() {
               </Box>
             </HStack>
             <Spacer />
-            <HStack spacing={3}>
+
+           <HStack spacing={3}>
+              {/* Tampilkan badge role jika sudah login */}
               {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
+              
+              {}
+              {/* Tombol ini hanya akan muncul jika isOwner bernilai true */}
+              {isOwner && (
+                <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
+                  Admin Panel
+                </Button>
+              )}
+              
+              {/* Tombol Login / Logout */}
               {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
             </HStack>
+            {/* <HStack spacing={3}>
+              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
+              {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
+            </HStack> */}
           </Flex>
 
-          {/* Router akan menentukan halaman mana yang ditampilkan berdasarkan URL */}
+          {}
           <Routes>
             <Route path="/" element={
-              <DashboardPage 
-                // Kita kirim semua state dan handler yang dibutuhkan oleh Dashboard
+              <DashboardPage
                 events={events}
                 loadingEvents={loadingEvents}
                 isOwner={isOwner}
@@ -168,18 +181,28 @@ export default function App() {
               />
             } />
             <Route path="/event/:eventName" element={
-              <WhitelistManagerPage 
-                // Kita kirim fungsi-fungsi yang dibutuhkan oleh halaman Whitelist
+              <WhitelistManagerPage
                 callViewWithFallback={callViewWithFallback}
                 sendTransaction={sendTransaction}
                 selector={selector}
                 contractId={ContractName}
               />
             } />
+            <Route path="/admin" element={
+              <AdminPage 
+                callViewWithFallback={callViewWithFallback}
+                sendTransaction={sendTransaction}
+                selector={selector}
+                contractId={ContractName}
+              />
+            } />
+            
           </Routes>
         </Container>
       </Box>
     </Router>
+
+
   );
 }
 

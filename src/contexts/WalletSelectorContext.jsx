@@ -34,7 +34,7 @@ export const WalletSelectorContextProvider = ({ children }) => {
   }, [selector]);
 
   if (!selector || !modal) {
-    return null; // Tampilkan halaman kosong selagi loading
+    return null; 
   }
 
   const value = { selector, modal, accountId };
