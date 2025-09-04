@@ -118,6 +118,34 @@ export default function App() {
     } finally { setClaiming(false); }
   };
   
+
+  const handleDeleteEvent = async (eventName) => {
+    if (!window.confirm(`Are you sure you want to delete the event "${eventName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const result = await sendTransaction([{
+        type: "FunctionCall",
+        params: {
+          methodName: "delete_event",
+          args: { event_name: eventName },
+          gas: GAS,
+          deposit: NO_DEPOSIT,
+        }
+      }]);
+      toast({ title: "Event deleted successfully!", status: "success" });
+      
+      // Refresh daftar event setelah berhasil dihapus
+      const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+      setEvents(Array.isArray(evs) ? evs : []);
+
+    } catch (e) {
+      toast({ title: "Error deleting event", description: String(e), status: "error" });
+    }
+  };
+
+  
   const handleSignIn = () => modal.show();
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -194,6 +222,13 @@ export default function App() {
                 sendTransaction={sendTransaction}
                 selector={selector}
                 contractId={ContractName}
+              />
+            } />
+
+            <Route path="/" element={
+              <DashboardPage 
+             
+                handleDeleteEvent={handleDeleteEvent} 
               />
             } />
             

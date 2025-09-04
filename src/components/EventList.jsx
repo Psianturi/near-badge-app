@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Text, List, ListItem, ListIcon, HStack, Spacer, IconButton, useToast, Flex, Button
+  Box, Text, List, ListItem, ListIcon, HStack, Spacer, IconButton, useToast, Flex, Button, Td, Tr
 } from "@chakra-ui/react";
 import { CheckCircleIcon, LinkIcon } from "@chakra-ui/icons";
+import { Trash } from "lucide-react";
 
-// Tambahkan prop baru: onManageWhitelist
+
 export function EventList({ events, isLoading, isOwner, isOrganizer, onManageWhitelist }) {
   const toast = useToast();
   const navigate = useNavigate();
@@ -49,20 +50,31 @@ export function EventList({ events, isLoading, isOwner, isOrganizer, onManageWhi
             </HStack>
             <Spacer />
             {(isOwner || isOrganizer) && (
-              <HStack>
-                <IconButton
-                  aria-label="Get magic link"
-                  icon={<LinkIcon />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="teal"
-                  onClick={() => handleShare(eventName)}
-                />
-                {/* INI TOMBOL BARUNYA */}
-                <Button size="sm" onClick={() => onManageWhitelist(eventName)}>
-                  Manage
-                </Button>
-              </HStack>
+             <HStack>
+                    <IconButton
+                      aria-label="Get magic link"
+                      icon={<LinkIcon />}
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="teal"
+                      onClick={() => handleShare(eventName)}
+                    />
+                    <Button size="sm" onClick={() => onManageWhitelist(eventName)}>
+                      Manage
+                    </Button>
+                    
+                    {/* Hanya muncul jika pengguna adalah owner atau organizer event ini */}
+                    {(isOwner || (isOrganizer && accountId === ev.organizer)) && (
+                      <IconButton
+                        aria-label="Delete event"
+                        icon={<Trash size={16} />}
+                        size="sm"
+                        colorScheme="red"
+                        variant="ghost"
+                        onClick={() => handleDeleteEvent(eventName)}
+                      />
+                    )}
+                  </HStack>
             )}
           </Flex>
         </ListItem>

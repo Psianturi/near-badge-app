@@ -74,3 +74,4 @@ Ensure you have the following installed:
 **Admin/Organizer View**
 ![alt text](02.png)
 ![alt text](image-1.png)
+![alt text](image.png)
