@@ -7,7 +7,7 @@ import { CheckCircleIcon, LinkIcon } from "@chakra-ui/icons";
 import { Trash } from "lucide-react";
 
 
-export function EventList({ events, isLoading, isOwner, isOrganizer, onManageWhitelist }) {
+export function EventList({ events, isLoading, isOwner, isOrganizer, accountId, onManageWhitelist, onDeleteEvent  }) {
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -51,30 +51,28 @@ export function EventList({ events, isLoading, isOwner, isOrganizer, onManageWhi
             <Spacer />
             {(isOwner || isOrganizer) && (
              <HStack>
-                    <IconButton
-                      aria-label="Get magic link"
-                      icon={<LinkIcon />}
-                      size="sm"
-                      variant="ghost"
-                      colorScheme="teal"
-                      onClick={() => handleShare(eventName)}
-                    />
-                    <Button size="sm" onClick={() => onManageWhitelist(eventName)}>
-                      Manage
-                    </Button>
-                    
-                    {/* Hanya muncul jika pengguna adalah owner atau organizer event ini */}
-                    {(isOwner || (isOrganizer && accountId === ev.organizer)) && (
-                      <IconButton
-                        aria-label="Delete event"
-                        icon={<Trash size={16} />}
-                        size="sm"
-                        colorScheme="red"
-                        variant="ghost"
-                        onClick={() => handleDeleteEvent(eventName)}
-                      />
-                    )}
-                  </HStack>
+                <IconButton
+                  aria-label="Get magic link"
+                  icon={<LinkIcon />}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="teal"
+                  onClick={() => handleShare(eventName)}
+                />
+                <Button size="sm" onClick={() => onManageWhitelist(eventName)}>
+                  Manage
+                </Button>
+                {(isOwner || (isOrganizer && accountId === ev.organizer)) && (
+                  <IconButton
+                    aria-label="Delete event"
+                    icon={<Trash size={16} />}
+                    size="sm"
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => onDeleteEvent(eventName)}
+                  />
+                )}
+              </HStack>
             )}
           </Flex>
         </ListItem>

@@ -168,10 +168,8 @@ export default function App() {
             <Spacer />
 
            <HStack spacing={3}>
-              {/* Tampilkan badge role jika sudah login */}
               {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
               
-              {}
               {/* Tombol ini hanya akan muncul jika isOwner bernilai true */}
               {isOwner && (
                 <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
@@ -206,6 +204,7 @@ export default function App() {
                 claiming={claiming}
                 claimEventName={claimEventName}
                 setClaimEventName={setClaimEventName}
+                handleDeleteEvent={handleDeleteEvent}
               />
             } />
             <Route path="/event/:eventName" element={
@@ -222,13 +221,6 @@ export default function App() {
                 sendTransaction={sendTransaction}
                 selector={selector}
                 contractId={ContractName}
-              />
-            } />
-
-            <Route path="/" element={
-              <DashboardPage 
-             
-                handleDeleteEvent={handleDeleteEvent} 
               />
             } />
             
