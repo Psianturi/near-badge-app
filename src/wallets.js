@@ -1,4 +1,3 @@
-// src/wallets.js
 
 import "@near-wallet-selector/modal-ui/styles.css";
 import { setupModal } from "@near-wallet-selector/modal-ui";

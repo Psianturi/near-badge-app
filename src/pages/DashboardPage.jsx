@@ -33,49 +33,29 @@ const CreateEventView = ({ handleCreate, creating, name, setName, description, s
 );
 
 export default function DashboardPage({
-  events, loadingEvents, isOwner, isOrganizer,
-  handleCreate, creating, name, setName, description, setDescription,
-  handleClaim, claiming, claimEventName, setClaimEventName, accountId, wallet, CONTRACT_ID 
+  events,
+  loadingEvents,
+  isOwner,
+  isOrganizer,
+  handleCreate,
+  creating,
+  name,
+  setName,
+  description,
+  setDescription,
+  handleClaim,
+  claiming,
+  claimEventName,
+  setClaimEventName,
+  accountId,
+  handleDeleteEvent, 
 }) {
   const [mode, setMode] = useState("claim");
   const navigate = useNavigate();
   const toast = useToast();
-  const onManageWhitelist = (eventName) => {
-    
-    navigate(`/event/${eventName}`);
-  };
 
-  const onDeleteEvent = async (eventName) => {
-    try {
-      await wallet.signAndSendTransaction({
-        receiverId: CONTRACT_ID,
-        actions: [{
-          type: "FunctionCall",
-          params: {
-            methodName: "delete_event",
-            args: { event_name: eventName },
-            gas: "30000000000000",
-            deposit: "0"
-          }
-        }]
-      });
-      toast({
-        title: "Event deleted",
-        description: `${eventName} has been removed.`,
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
-      // optionally refresh list
-    } catch (e) {
-      toast({
-        title: "Delete failed",
-        description: e.message,
-        status: "error",
-        duration: 6000,
-        isClosable: true,
-      });
-    }
+  const onManageWhitelist = (eventName) => {
+    navigate(`/event/${eventName}`);
   };
 
   return (
@@ -98,9 +78,9 @@ export default function DashboardPage({
           isLoading={loadingEvents}
           isOwner={isOwner}
           isOrganizer={isOrganizer}
-          accountId={accountId}         
+          accountId={accountId}
           onManageWhitelist={onManageWhitelist}
-          onDeleteEvent={onDeleteEvent}    // <--- pass handler
+          onDeleteEvent={handleDeleteEvent} 
         />
       </Box>
     </>

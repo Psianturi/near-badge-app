@@ -15,6 +15,7 @@ Web application for the NEAR Badge (POAP) project. Built with React and Vite, th
 -   **Magic Link Generation**: Organizers can instantly copy a shareable "magic link" for any event.
 -   **Interactive Transaction Toasts**: Provides users with direct links to the NEAR Explorer to view their successful transactions.
 -   **NFT Badge Claiming**: Enables whitelisted attendees to easily claim their unique NFT badge for an event.
+-   **Event Deletion**: ✅ **Admin and Organizer accounts can now safely delete events** using the trash icon (🗑️). This feature includes confirmation prompts to prevent accidental deletions.
 -   **Responsive Design**: A clean and modern interface built entirely with **Chakra UI**.
 
 ## Technology Stack
@@ -65,13 +66,12 @@ Ensure you have the following installed:
     npm run dev
     ```
 
-
 ## Screenshots
 
 **Attendee View**
-![alt text](01.png)
+![alt text](image-2.png)
 
 **Admin/Organizer View**
-![alt text](02.png)
-![alt text](image-1.png)
+![alt text](image-4.png)
+![alt text](image-3.png)
 ![alt text](image.png)

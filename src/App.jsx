@@ -136,7 +136,7 @@ export default function App() {
       }]);
       toast({ title: "Event deleted successfully!", status: "success" });
       
-      // Refresh daftar event setelah berhasil dihapus
+      // Refresh  event list after deleted
       const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
       setEvents(Array.isArray(evs) ? evs : []);
 
@@ -168,22 +168,17 @@ export default function App() {
             <Spacer />
 
            <HStack spacing={3}>
-              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
+              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "pink"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
               
-              {/* Tombol ini hanya akan muncul jika isOwner bernilai true */}
               {isOwner && (
                 <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
                   Admin Panel
                 </Button>
               )}
               
-              {/* Tombol Login / Logout */}
               {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
             </HStack>
-            {/* <HStack spacing={3}>
-              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "gray"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
-              {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
-            </HStack> */}
+          
           </Flex>
 
           {}
@@ -204,6 +199,7 @@ export default function App() {
                 claiming={claiming}
                 claimEventName={claimEventName}
                 setClaimEventName={setClaimEventName}
+                accountId={accountId}
                 handleDeleteEvent={handleDeleteEvent}
               />
             } />
