@@ -9,6 +9,8 @@ import AdminPage from "./pages/AdminPage.jsx";
 import NearLogo from "./assets/near_logo.svg";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
+import { makeRateLimited } from './utils/rateLimit';
+
 
 // helper & constanta
 const ExplorerLink = ({ txId }) => ( <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">View Transaction on Explorer</Link> );
@@ -40,6 +42,8 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes)));
   } catch (e) { console.error("RPC fallback failed:", e); throw e; }
 }
+const rateLimitedCallView = makeRateLimited(callViewWithFallback, 14);
+
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
@@ -59,6 +63,7 @@ export default function App() {
   const [claimEventName, setClaimEventName] = useState("");
   const [creating, setCreating] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  
 
   useEffect(() => {
     const load = async () => {
@@ -69,8 +74,10 @@ export default function App() {
         let rolesPromise = Promise.resolve([false, false]);
         if (accountId) {
           rolesPromise = Promise.all([
-            callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
-            callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId })
+            // callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
+            // callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId })
+            rateLimitedCallView(selector, ContractName, "is_owner", { account_id: accountId }),
+            rateLimitedCallView(selector, ContractName, "is_organizer", { account_id: accountId })
           ]);
         }
         const [evs, [ownerCheck, orgCheck]] = await Promise.all([evsPromise, rolesPromise]);
