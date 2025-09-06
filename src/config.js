@@ -1,7 +1,7 @@
 // src/config.js
 
 
-export const ContractName = "near-badge.testnet";
+export const ContractName = "coba-admin.testnet";
 
 // Network
 export const NetworkId = 'testnet';

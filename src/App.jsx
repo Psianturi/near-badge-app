@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link as RouterLink } from 'react-router-dom';
 import { useWalletSelector } from "./contexts/WalletSelectorContext.jsx";
@@ -6,14 +7,19 @@ import {
   Box, Button, Container, Flex, Spacer, Badge, HStack, Image, Heading, Text, useToast, Link
 } from "@chakra-ui/react";
 import AdminPage from "./pages/AdminPage.jsx";
+import ManagerPage from "./pages/ManagerPage.jsx"; // ✅ Tambahkan
 import NearLogo from "./assets/near_logo.svg";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
 import { makeRateLimited } from './utils/rateLimit';
 
-
 // helper & constanta
-const ExplorerLink = ({ txId }) => ( <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">View Transaction on Explorer</Link> );
+const ExplorerLink = ({ txId }) => (
+  <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">
+    View Transaction on Explorer
+  </Link>
+);
+
 async function callViewWithFallback(selector, contractId, method, args = {}) {
   try {
     if (selector && selector.isSignedIn()) {
@@ -22,16 +28,24 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
         return await wallet.viewMethod({ contractId, method, args });
       }
     }
-  } catch (e) { console.warn("Falling back to RPC due to wallet.viewMethod error:", e); }
+  } catch (e) {
+    console.warn("Falling back to RPC due to wallet.viewMethod error:", e);
+  }
   try {
     const rpcUrl = NetworkId === "testnet" ? "https://rpc.testnet.near.org" : "https://rpc.mainnet.near.org";
     const resp = await fetch(rpcUrl, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        jsonrpc: "2.0", id: "dontcare", method: "query",
+        jsonrpc: "2.0",
+        id: "dontcare",
+        method: "query",
         params: {
-          request_type: "call_function", finality: "optimistic", account_id: contractId,
-          method_name: method, args_base64: btoa(JSON.stringify(args)),
+          request_type: "call_function",
+          finality: "optimistic",
+          account_id: contractId,
+          method_name: method,
+          args_base64: btoa(JSON.stringify(args)),
         },
       }),
     });
@@ -40,62 +54,62 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     const bytes = json.result?.result;
     if (!bytes) return null;
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes)));
-  } catch (e) { console.error("RPC fallback failed:", e); throw e; }
+  } catch (e) {
+    console.error("RPC fallback failed:", e);
+    throw e;
+  }
 }
-const rateLimitedCallView = makeRateLimited(callViewWithFallback, 12);
 
+const rateLimitedCallView = makeRateLimited(callViewWithFallback, 12);
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
 
 export default function App() {
-
   const { selector, modal, accountId } = useWalletSelector();
   const toast = useToast();
-  
+
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isOrganizer, setIsOrganizer] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  
+  const [isManager, setIsManager] = useState(false);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [claimEventName, setClaimEventName] = useState("");
   const [creating, setCreating] = useState(false);
   const [claiming, setClaiming] = useState(false);
-  
 
-useEffect(() => {
-  const load = async () => {
-    if (!selector) return;
-    setLoadingEvents(true);
-    try {
-      const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
-      
-      let rolesPromise = Promise.resolve([false, false, false]); // owner, organizer, admin
-      if (accountId) {
-        rolesPromise = Promise.all([
-          callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
-          callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId }),
-          callViewWithFallback(selector, ContractName, "is_admin", { account_id: accountId })
-        ]);
+  useEffect(() => {
+    const load = async () => {
+      if (!selector) return;
+      setLoadingEvents(true);
+      try {
+        const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
+        
+        let rolesPromise = Promise.resolve([false, false, false]);
+        if (accountId) {
+          rolesPromise = Promise.all([
+            callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
+            callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId }),
+            callViewWithFallback(selector, ContractName, "is_manager", { account_id: accountId })
+          ]);
+        }
+
+        const [evs, [ownerCheck, orgCheck, managerCheck]] = await Promise.all([evsPromise, rolesPromise]);
+        setEvents(Array.isArray(evs) ? evs : []);
+        setIsOwner(Boolean(ownerCheck));
+        setIsOrganizer(Boolean(orgCheck));
+        setIsManager(Boolean(managerCheck));
+      } catch (e) {
+        toast({ title: "Failed to load data", description: String(e), status: "error" });
+      } finally {
+        setLoadingEvents(false);
       }
-
-      const [evs, [ownerCheck, orgCheck, adminCheck]] = await Promise.all([evsPromise, rolesPromise]);
-      setEvents(Array.isArray(evs) ? evs : []);
-      setIsOwner(Boolean(ownerCheck));
-      setIsOrganizer(Boolean(orgCheck));
-      setIsAdmin(Boolean(adminCheck)); // ✅ Simpan hasil cek admin
-    } catch (e) {
-      toast({ title: "Failed to load data", description: String(e), status: "error" });
-    } finally {
-      setLoadingEvents(false);
-    }
-  };
-  load();
-}, [selector, accountId]);
-
+    };
+    load();
+  }, [selector, accountId]);
 
   async function sendTransaction(actions) {
     if (!selector || !accountId) throw new Error("Wallet not ready or not signed in");
@@ -107,58 +121,72 @@ useEffect(() => {
     if (!name || !description) return toast({ status: "warning", title: "Fill name & description" });
     setCreating(true);
     try {
-      const result = await sendTransaction([{ type: "FunctionCall", params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT } }]);
+      const result = await sendTransaction([
+        { type: "FunctionCall", params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT } }
+      ]);
       const txId = result.transaction_outcome?.id || result.transaction?.hash;
-      toast({ duration: 9000, isClosable: true, render: () => ( <Box color="white" p={4} bg="green.500" borderRadius="md" boxShadow="lg"><Text fontWeight="bold">Event Created Successfully!</Text>{txId && <ExplorerLink txId={txId} />}</Box> )});
+      toast({
+        duration: 9000,
+        isClosable: true,
+        render: () => (
+          <Box color="white" p={4} bg="green.500" borderRadius="md" boxShadow="lg">
+            <Text fontWeight="bold">Event Created Successfully!</Text>
+            {txId && <ExplorerLink txId={txId} />}
+          </Box>
+        )
+      });
       const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");
     } catch (e) {
       toast({ title: "Error creating event", description: (e?.message) || String(e), status: "error" });
-    } finally { setCreating(false); }
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleClaim = async () => {
     if (!claimEventName) return toast({ status: "warning", title: "Fill event name or paste magic link" });
     setClaiming(true);
     try {
-      const result = await sendTransaction([{ type: "FunctionCall", params: { methodName: "claim_badge", args: { event_name: claimEventName }, gas: GAS, deposit: DEPOSIT_FOR_BADGE } }]);
+      const result = await sendTransaction([
+        { type: "FunctionCall", params: { methodName: "claim_badge", args: { event_name: claimEventName }, gas: GAS, deposit: DEPOSIT_FOR_BADGE } }
+      ]);
       const txId = result.transaction_outcome?.id || result.transaction?.hash;
-      toast({ duration: 9000, isClosable: true, render: () => ( <Box color="white" p={4} bg="teal.500" borderRadius="md" boxShadow="lg"><Text fontWeight="bold">Claim Request Successful!</Text>{txId && <ExplorerLink txId={txId} />}</Box> )});
+      toast({
+        duration: 9000,
+        isClosable: true,
+        render: () => (
+          <Box color="white" p={4} bg="teal.500" borderRadius="md" boxShadow="lg">
+            <Text fontWeight="bold">Claim Request Successful!</Text>
+            {txId && <ExplorerLink txId={txId} />}
+          </Box>
+        )
+      });
       setClaimEventName("");
     } catch (e) {
       toast({ title: "Error claiming badge", description: (e?.message) || String(e), status: "error" });
-    } finally { setClaiming(false); }
+    } finally {
+      setClaiming(false);
+    }
   };
-  
 
   const handleDeleteEvent = async (eventName) => {
     if (!window.confirm(`Are you sure you want to delete the event "${eventName}"? This cannot be undone.`)) {
       return;
     }
-
     try {
-      const result = await sendTransaction([{
-        type: "FunctionCall",
-        params: {
-          methodName: "delete_event",
-          args: { event_name: eventName },
-          gas: GAS,
-          deposit: NO_DEPOSIT,
-        }
-      }]);
+      const result = await sendTransaction([
+        { type: "FunctionCall", params: { methodName: "delete_event", args: { event_name: eventName }, gas: GAS, deposit: NO_DEPOSIT } }
+      ]);
       toast({ title: "Event deleted successfully!", status: "success" });
-      
-      // Refresh  event list after deleted
       const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
       setEvents(Array.isArray(evs) ? evs : []);
-
     } catch (e) {
       toast({ title: "Error deleting event", description: String(e), status: "error" });
     }
   };
 
-  
   const handleSignIn = () => modal.show();
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -166,10 +194,10 @@ useEffect(() => {
   };
 
   return (
-     <Router>
+    <Router>
       <Box bg="gray.50" minH="100vh" py={[4, 8, 12]}>
         <Container maxW="container.md">
-          {/* Header ini akan muncul di semua halaman */}
+          {/* Header */}
           <Flex mb={6} align="center">
             <HStack spacing={4}>
               <Image src={NearLogo} boxSize="40px" alt="NEAR Logo" />
@@ -179,18 +207,12 @@ useEffect(() => {
               </Box>
             </HStack>
             <Spacer />
-
-           <HStack spacing={3}>
-              {accountId && 
-              <Badge
-  colorScheme={
-    isOwner || isAdmin ? "green" : 
-    isOrganizer ? "yellow" : "pink"
-  }
->
-  {isOwner || isAdmin ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
-</Badge>
-              }
+            <HStack spacing={3}>
+              {accountId && (
+                <Badge colorScheme={isOwner ? "green" : isManager ? "blue" : isOrganizer ? "yellow" : "gray"}>
+                  {isOwner ? "ADMIN" : isManager ? "MANAGER" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
+                </Badge>
+              )}
               
               {isOwner && (
                 <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
@@ -198,12 +220,21 @@ useEffect(() => {
                 </Button>
               )}
               
-              {accountId ? <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button> : <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>}
+              {isManager && !isOwner && (
+                <Button as={RouterLink} to="/manager" colorScheme="blue" size="sm">
+                  Manager Panel
+                </Button>
+              )}
+              
+              {accountId ? (
+                <Button onClick={handleSignOut}>Log out ({accountId.substring(0,6)}...)</Button>
+              ) : (
+                <Button colorScheme="blue" onClick={handleSignIn}>Log in</Button>
+              )}
             </HStack>
-          
           </Flex>
 
-          {}
+          {/* Routes */}
           <Routes>
             <Route path="/" element={
               <DashboardPage
@@ -211,7 +242,6 @@ useEffect(() => {
                 loadingEvents={loadingEvents}
                 isOwner={isOwner}
                 isOrganizer={isOrganizer}
-                isAdmin={isAdmin} 
                 handleCreate={handleCreate}
                 creating={creating}
                 name={name}
@@ -236,20 +266,24 @@ useEffect(() => {
               />
             } />
             <Route path="/admin" element={
-              <AdminPage 
+              <AdminPage
                 callViewWithFallback={callViewWithFallback}
                 sendTransaction={sendTransaction}
                 selector={selector}
                 contractId={ContractName}
               />
             } />
-            
+            <Route path="/manager" element={
+              <ManagerPage
+                callViewWithFallback={callViewWithFallback}
+                sendTransaction={sendTransaction}
+                selector={selector}
+                contractId={ContractName}
+              />
+            } />
           </Routes>
         </Container>
       </Box>
     </Router>
-
-
   );
 }
-
