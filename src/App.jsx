@@ -42,7 +42,7 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes)));
   } catch (e) { console.error("RPC fallback failed:", e); throw e; }
 }
-const rateLimitedCallView = makeRateLimited(callViewWithFallback, 14);
+const rateLimitedCallView = makeRateLimited(callViewWithFallback, 12);
 
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
@@ -57,6 +57,7 @@ export default function App() {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isOrganizer, setIsOrganizer] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -65,31 +66,36 @@ export default function App() {
   const [claiming, setClaiming] = useState(false);
   
 
-  useEffect(() => {
-    const load = async () => {
-      if (!selector) return;
-      setLoadingEvents(true);
-      try {
-        const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
-        let rolesPromise = Promise.resolve([false, false]);
-        if (accountId) {
-          rolesPromise = Promise.all([
-            // callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
-            // callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId })
-            rateLimitedCallView(selector, ContractName, "is_owner", { account_id: accountId }),
-            rateLimitedCallView(selector, ContractName, "is_organizer", { account_id: accountId })
-          ]);
-        }
-        const [evs, [ownerCheck, orgCheck]] = await Promise.all([evsPromise, rolesPromise]);
-        setEvents(Array.isArray(evs) ? evs : []);
-        setIsOwner(Boolean(ownerCheck));
-        setIsOrganizer(Boolean(orgCheck));
-      } catch (e) {
-        toast({ title: "Failed to load data", description: String(e), status: "error" });
-      } finally { setLoadingEvents(false); }
-    };
-    load();
-  }, [selector, accountId]);
+useEffect(() => {
+  const load = async () => {
+    if (!selector) return;
+    setLoadingEvents(true);
+    try {
+      const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
+      
+      let rolesPromise = Promise.resolve([false, false, false]); // owner, organizer, admin
+      if (accountId) {
+        rolesPromise = Promise.all([
+          callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
+          callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId }),
+          callViewWithFallback(selector, ContractName, "is_admin", { account_id: accountId })
+        ]);
+      }
+
+      const [evs, [ownerCheck, orgCheck, adminCheck]] = await Promise.all([evsPromise, rolesPromise]);
+      setEvents(Array.isArray(evs) ? evs : []);
+      setIsOwner(Boolean(ownerCheck));
+      setIsOrganizer(Boolean(orgCheck));
+      setIsAdmin(Boolean(adminCheck)); // ✅ Simpan hasil cek admin
+    } catch (e) {
+      toast({ title: "Failed to load data", description: String(e), status: "error" });
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+  load();
+}, [selector, accountId]);
+
 
   async function sendTransaction(actions) {
     if (!selector || !accountId) throw new Error("Wallet not ready or not signed in");
@@ -175,7 +181,16 @@ export default function App() {
             <Spacer />
 
            <HStack spacing={3}>
-              {accountId && <Badge colorScheme={isOwner ? "green" : isOrganizer ? "yellow" : "pink"}>{isOwner ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}</Badge>}
+              {accountId && 
+              <Badge
+  colorScheme={
+    isOwner || isAdmin ? "green" : 
+    isOrganizer ? "yellow" : "pink"
+  }
+>
+  {isOwner || isAdmin ? "ADMIN" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
+</Badge>
+              }
               
               {isOwner && (
                 <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
@@ -196,6 +211,7 @@ export default function App() {
                 loadingEvents={loadingEvents}
                 isOwner={isOwner}
                 isOrganizer={isOrganizer}
+                isAdmin={isAdmin} 
                 handleCreate={handleCreate}
                 creating={creating}
                 name={name}
@@ -208,6 +224,7 @@ export default function App() {
                 setClaimEventName={setClaimEventName}
                 accountId={accountId}
                 handleDeleteEvent={handleDeleteEvent}
+                sendTransaction={sendTransaction}
               />
             } />
             <Route path="/event/:eventName" element={
