@@ -146,7 +146,7 @@ export default function App() {
   };
 
   const handleClaim = async () => {
-    if (!claimEventName) return toast({ status: "warning", title: "Fill event name or paste magic link" });
+    if (!claimEventName) return toast({ status: "warning", title: "Fill event name" });
     setClaiming(true);
     try {
       const result = await sendTransaction([
@@ -209,7 +209,7 @@ export default function App() {
             <Spacer />
             <HStack spacing={3}>
               {accountId && (
-                <Badge colorScheme={isOwner ? "green" : isManager ? "blue" : isOrganizer ? "yellow" : "gray"}>
+                <Badge colorScheme={isOwner ? "green" : isManager ? "blue" : isOrganizer ? "yellow" : "pink"}>
                   {isOwner ? "ADMIN" : isManager ? "MANAGER" : isOrganizer ? "ORGANIZER" : "ATTENDEE"}
                 </Badge>
               )}

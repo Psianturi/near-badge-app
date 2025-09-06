@@ -10,7 +10,7 @@ const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName })
   <VStack spacing={4} align="stretch">
     <Heading as="h2" size="md">Claim a Badge</Heading>
     <FormControl>
-      <FormLabel>Event name or magic link</FormLabel>
+      <FormLabel>Event name</FormLabel>
       <Input
         placeholder="Enter event name or paste magic link"
         value={claimEventName}
