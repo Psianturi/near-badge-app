@@ -15,9 +15,9 @@ const ExplorerLink = ({ txId }) => (
 );
 
 
-async function callViewWithFallback(selector, contractId, method, args = {}) {
+// async function callViewWithFallback(selector, contractId, method, args = {}) {
    
-}
+// }
 
 
 export default function MyBadgesPage() {
