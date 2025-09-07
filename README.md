@@ -1,38 +1,45 @@
-# NEAR Badge - Frontend Application
+# NEAR Badge – Frontend Application
 
 ![Status: Active](https://img.shields.io/badge/status-active-success.svg)
 
-Web application for the NEAR Badge (POAP) project. Built with React and Vite, this application provides a complete, multi-page interface for users and event organizers to interact with the NEAR Badge smart contract.
+Web application for the **NEAR Badge (POAP)** project. Built with **React + Vite**, this application provides a complete, multi-page interface for users and event organizers to interact with the NEAR Badge smart contract.
 
-## Core Features
+---
 
--   **Multi-Page Experience**: Uses React Router for seamless navigation between the main dashboard and event management pages.
--   **Role-Based UI**: The interface dynamically adapts based on the user's role. Special tools, like the "Create Event" and "Manage" buttons, are only visible to authorized `ADMIN` or `ORGANIZER` accounts.
--   **Full Whitelist Management**: A dedicated page for organizers to:
-    -   **Upload Attendee Lists via CSV**: Parses CSV files (e.g., from Luma) and adds attendees to the whitelist in batches.
-    -   **Add Attendees Manually**: Quickly add single attendees who might have registered late.
-    -   **View Current Whitelist**: Displays the real-time list of all whitelisted accounts.
--   **Magic Link Generation**: Organizers can instantly copy a shareable "magic link" for any event.
--   **Interactive Transaction Toasts**: Provides users with direct links to the NEAR Explorer to view their successful transactions.
--   **NFT Badge Claiming**: Enables whitelisted attendees to easily claim their unique NFT badge for an event.
--   **Event Deletion**: ✅ **Admin and Organizer accounts can now safely delete events** using the trash icon (🗑️). This feature includes confirmation prompts to prevent accidental deletions.
--   **Responsive Design**: A clean and modern interface built entirely with **Chakra UI**.
+## ✨ Core Features
 
-## Technology Stack
+- **Multi-Page Experience** – Seamless navigation with React Router (Dashboard, Event Whitelist, My Badges, etc.).
+- **Role-Based UI** – Buttons like **Create Event**, **Manage Whitelist**, and **Delete Event** only show for authorized **Admin / Organizer** accounts.
+- **Whitelist Management**
+  - **CSV Upload** – Import attendee lists (e.g., from Luma) using Papa Parse.
+  - **Manual Add** – Quickly add late registrants one by one.
+  - **Real-Time Whitelist View** – See current attendees before the event.
+- **Magic Link** – Generate an instant `?event=xyz` link for attendees to claim badges directly.
+- **NFT Badge Claiming** – Whitelisted users can mint their event badge with one click.
+- **Event Deletion** – Admins & Organizers can safely remove obsolete events (🗑️ with confirmation).
+- **Interactive Transaction Toasts** – Each on-chain action includes a NEAR Explorer link.
+- **Responsive UI** – Chakra UI components ensure a clean, modern experience on desktop & mobile.
 
--   **Framework**: React (using Vite)
--   **UI Library**: Chakra UI
--   **Routing**: React Router
--   **CSV Parsing**: Papa Parse
--   **Blockchain Integration**: `@near-wallet-selector`
+---
 
-## Smart Contract
+## 🛠 Technology Stack
+
+| Layer      | Tool / Library |
+|------------|----------------|
+| Framework  | React + Vite   |
+| UI         | Chakra UI      |
+| Routing    | React Router   |
+| CSV Parse  | Papa Parse     |
+| Blockchain | `@near-wallet-selector` |
+
+---
+
+## 🔗 Smart Contract
 
 This frontend connects to the smart contract located at the following repository:
 
 ➡️ **[github.com/Psianturi/near-badge-contract](https://github.com/Psianturi/near-badge-contract)**
 
--   **Current Testnet Address:** `near-badge.testnet`
 
 ## Getting Started
 
