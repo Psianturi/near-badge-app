@@ -41,7 +41,7 @@ Follow these steps to run the project on your local machine.
 ### Prerequisites
 
 Ensure you have the following installed:
--   Node.js (v16 or later)
+-   Node.js (v20 or later)
 -   npm or yarn
 
 ### Installation & Running
@@ -70,6 +70,7 @@ Ensure you have the following installed:
 
 **Attendee View**
 ![alt text](image-2.png)
+![alt text](image-5.png)
 
 **Admin/Organizer View**
 ![alt text](image-4.png)
