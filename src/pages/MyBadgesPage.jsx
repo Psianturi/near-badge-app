@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useWalletSelector } from '../contexts/WalletSelectorContext.jsx';
 import { ContractName } from '../config.js';
 import { Box, Heading, Text, SimpleGrid, Image, Spinner, Center, Link, Tag } from '@chakra-ui/react';
+import { callViewWithFallback } from '../utils/callViewWithFallback.js';
+
 
 
 const ExplorerLink = ({ txId }) => (
@@ -37,6 +39,8 @@ export default function MyBadgesPage() {
         const ownedBadges = await callViewWithFallback(selector, ContractName, "nft_tokens_for_owner", {
           account_id: accountId,
         });
+        console.log("Owned badges:", ownedBadges);
+
         setBadges(ownedBadges || []);
       } catch (error) {
         console.error("Failed to fetch badges:", error);
