@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
-
+import { useEffect } from "react";
+import { normalizeEventName } from "../utils/normalizeEventName";
 
 export function useMagicLink(setMode, setClaimEventName) {
   useEffect(() => {
-    // parameter dari URL
     const urlParams = new URLSearchParams(window.location.search);
-    const eventFromUrl = urlParams.get('event');
-
+    const eventFromUrl = urlParams.get("event");
 
     if (eventFromUrl) {
-      setMode("claim"); 
-      setClaimEventName(eventFromUrl); // Isi input field
+      setMode("claim");
+      const decoded = decodeURIComponent(eventFromUrl);
+      const clean = normalizeEventName(decoded);
+      setClaimEventName(clean);
     }
   }, []); // run once
 }

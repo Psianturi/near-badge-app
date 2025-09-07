@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Box, Button, FormControl, FormLabel, Heading, Input, Textarea, VStack,
-  HStack, Divider, useToast,
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Textarea,
+  VStack,
+  HStack,
+  Divider,
+  useToast,
 } from "@chakra-ui/react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { EventList } from "../components/EventList.jsx";
+import { normalizeEventName } from "../utils/normalizeEventName";
+
 
 const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName }) => (
   <VStack spacing={4} align="stretch">
-    <Heading as="h2" size="md">Claim a Badge</Heading>
+    <Heading as="h2" size="md">
+      Claim a Badge
+    </Heading>
     <FormControl>
       <FormLabel>Event name</FormLabel>
       <Input
@@ -23,9 +36,18 @@ const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName })
   </VStack>
 );
 
-const CreateEventView = ({ handleCreate, creating, name, setName, description, setDescription }) => (
+const CreateEventView = ({
+  handleCreate,
+  creating,
+  name,
+  setName,
+  description,
+  setDescription,
+}) => (
   <VStack spacing={4} align="stretch">
-    <Heading as="h2" size="md">Create a New Event</Heading>
+    <Heading as="h2" size="md">
+      Create a New Event
+    </Heading>
     <FormControl isRequired>
       <FormLabel>Event Name</FormLabel>
       <Input
@@ -71,6 +93,17 @@ export default function DashboardPage({
   const navigate = useNavigate();
   const toast = useToast();
 
+//
+  const wrappedHandleClaim = async () => {
+    if (!claimEventName) {
+      toast({ status: "warning", title: "Please enter event name" });
+      return;
+    }
+    const clean = normalizeEventName(claimEventName);
+    setClaimEventName(clean);
+    await handleClaim(clean);
+  };
+
   const onManageWhitelist = (eventName) => {
     navigate(`/event/${eventName}`);
   };
@@ -96,7 +129,7 @@ export default function DashboardPage({
       </HStack>
 
       <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="md">
-        {mode === 'create' ? (
+        {mode === "create" ? (
           <CreateEventView
             handleCreate={handleCreate}
             creating={creating}
@@ -107,14 +140,16 @@ export default function DashboardPage({
           />
         ) : (
           <ClaimView
-            handleClaim={handleClaim}
+            handleClaim={wrappedHandleClaim}
             claiming={claiming}
             claimEventName={claimEventName}
             setClaimEventName={setClaimEventName}
           />
         )}
         <Divider my={6} />
-        <Heading as="h3" size="md" mb={3}>Available Events</Heading>
+        <Heading as="h3" size="md" mb={3}>
+          Available Events
+        </Heading>
         <EventList
           events={events}
           isLoading={loadingEvents}
