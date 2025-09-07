@@ -7,11 +7,13 @@ import {
   Box, Button, Container, Flex, Spacer, Badge, HStack, Image, Heading, Text, useToast, Link
 } from "@chakra-ui/react";
 import AdminPage from "./pages/AdminPage.jsx";
-import ManagerPage from "./pages/ManagerPage.jsx"; // ✅ Tambahkan
+import ManagerPage from "./pages/ManagerPage.jsx";
 import NearLogo from "./assets/near_logo.svg";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
 import { makeRateLimited } from './utils/rateLimit';
+
+import MyBadgesPage from "./pages/MyBadgesPage.jsx";
 
 // helper & constanta
 const ExplorerLink = ({ txId }) => (
@@ -199,7 +201,7 @@ export default function App() {
         <Container maxW="container.md">
           {/* Header */}
           <Flex mb={6} align="center">
-            <HStack spacing={4}>
+            <HStack as={RouterLink} to="/" spacing={4} _hover={{ textDecoration: 'none' }}>
               <Image src={NearLogo} boxSize="40px" alt="NEAR Logo" />
               <Box>
                 <Heading as="h1" size="lg">NEAR Badge Manager</Heading>
@@ -214,6 +216,13 @@ export default function App() {
                 </Badge>
               )}
               
+              {/* "My Badges" */}
+              {accountId && (
+                <Button as={RouterLink} to="/my-badges" colorScheme="teal" size="sm">
+                  My Badges
+                </Button>
+              )}
+
               {isOwner && (
                 <Button as={RouterLink} to="/admin" colorScheme="purple" size="sm">
                   Admin Panel
@@ -257,6 +266,10 @@ export default function App() {
                 sendTransaction={sendTransaction}
               />
             } />
+
+            {/* Route  /my-badges */}
+            <Route path="/my-badges" element={<MyBadgesPage />} />
+
             <Route path="/event/:eventName" element={
               <WhitelistManagerPage
                 callViewWithFallback={callViewWithFallback}
