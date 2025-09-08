@@ -12,7 +12,7 @@ import NearLogo from "./assets/near_logo.svg";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
 import { makeRateLimited } from './utils/rateLimit';
-
+import { DEFAULT_BADGE_IMAGES } from "./assets/default-images.js";
 import MyBadgesPage from "./pages/MyBadgesPage.jsx";
 
 // helper & constanta
@@ -119,12 +119,26 @@ export default function App() {
     return wallet.signAndSendTransaction({ signerId: accountId, receiverId: ContractName, actions });
   }
 
+
   const handleCreate = async () => {
     if (!name || !description) return toast({ status: "warning", title: "Fill name & description" });
     setCreating(true);
+
+    const randomIndex = Math.floor(Math.random() * DEFAULT_BADGE_IMAGES.length);
+    const randomMediaUrl = DEFAULT_BADGE_IMAGES[randomIndex];
+
     try {
       const result = await sendTransaction([
-        { type: "FunctionCall", params: { methodName: "create_event", args: { name, description }, gas: GAS, deposit: NO_DEPOSIT } }
+        {
+          type: "FunctionCall",
+          params: {
+            methodName: "create_event",
+            // Random  URL
+            args: { name, description, media: randomMediaUrl },
+            gas: GAS,
+            deposit: NO_DEPOSIT
+          }
+        }
       ]);
       const txId = result.transaction_outcome?.id || result.transaction?.hash;
       toast({
@@ -146,6 +160,8 @@ export default function App() {
       setCreating(false);
     }
   };
+
+
 
   const handleClaim = async () => {
     if (!claimEventName) return toast({ status: "warning", title: "Fill event name" });
