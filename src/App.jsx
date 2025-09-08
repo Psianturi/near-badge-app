@@ -11,7 +11,7 @@ import ManagerPage from "./pages/ManagerPage.jsx";
 import NearLogo from "./assets/near_logo.svg";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import WhitelistManagerPage from "./pages/WhitelistManagerPage.jsx";
-import { makeRateLimited } from './utils/rateLimit';
+import { makeRateLimited, makeCached } from './utils/rateLimit'; 
 import { DEFAULT_BADGE_IMAGES } from "./assets/default-images.js";
 import MyBadgesPage from "./pages/MyBadgesPage.jsx";
 
@@ -61,8 +61,7 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     throw e;
   }
 }
-
-const rateLimitedCallView = makeRateLimited(callViewWithFallback, 12);
+const callView = makeCached(makeRateLimited(callViewWithFallback));
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
@@ -88,14 +87,15 @@ export default function App() {
       if (!selector) return;
       setLoadingEvents(true);
       try {
-        const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
+        // const evsPromise = callViewWithFallback(selector, ContractName, "get_all_events", {});
+        const evsPromise = callView(selector, ContractName, "get_all_events", {}, 60);
         
         let rolesPromise = Promise.resolve([false, false, false]);
         if (accountId) {
           rolesPromise = Promise.all([
-            callViewWithFallback(selector, ContractName, "is_owner", { account_id: accountId }),
-            callViewWithFallback(selector, ContractName, "is_organizer", { account_id: accountId }),
-            callViewWithFallback(selector, ContractName, "is_manager", { account_id: accountId })
+            callView(selector, ContractName, "is_owner", { account_id: accountId }, 200),
+            callView(selector, ContractName, "is_organizer", { account_id: accountId },200),
+            callView(selector, ContractName, "is_manager", { account_id: accountId }, 200)
           ]);
         }
 
@@ -198,7 +198,7 @@ export default function App() {
         { type: "FunctionCall", params: { methodName: "delete_event", args: { event_name: eventName }, gas: GAS, deposit: NO_DEPOSIT } }
       ]);
       toast({ title: "Event deleted successfully!", status: "success" });
-      const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
       setEvents(Array.isArray(evs) ? evs : []);
     } catch (e) {
       toast({ title: "Error deleting event", description: String(e), status: "error" });
