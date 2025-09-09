@@ -10,7 +10,8 @@ import { ContractName, NetworkId } from "./config";
 
 
 
-const fastNearApiKey = process.env.NEXT_PUBLIC_FASTNEAR_API_KEY;
+// const fastNearApiKey = process.env.NEXT_PUBLIC_FASTNEAR_API_KEY;
+const fastNearApiKey = import.meta.env.VITE_FASTNEAR_API_KEY;
 
 let nodeUrl;
 if (NetworkId === 'mainnet') {
