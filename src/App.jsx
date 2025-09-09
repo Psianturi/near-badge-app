@@ -152,7 +152,7 @@ export default function App() {
         )
       });
   
-      const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 10);
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");
     } catch (e) {
@@ -199,7 +199,7 @@ export default function App() {
         { type: "FunctionCall", params: { methodName: "delete_event", args: { event_name: eventName }, gas: GAS, deposit: NO_DEPOSIT } }
       ]);
       toast({ title: "Event deleted successfully!", status: "success" });
-      const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 10);
       setEvents(Array.isArray(evs) ? evs : []);
     } catch (e) {
       toast({ title: "Error deleting event", description: String(e), status: "error" });
