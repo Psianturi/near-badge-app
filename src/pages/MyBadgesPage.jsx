@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useWalletSelector } from '../contexts/WalletSelectorContext.jsx';
 import { ContractName } from '../config.js';
 import { Box, Heading, Text, SimpleGrid, Image, Spinner, Center, Link, Tag } from '@chakra-ui/react';
-import { callViewWithFallback } from '../utils/callViewWithFallback.js';
 import { callView } from '../utils/near.js'; 
 
 
@@ -14,10 +13,6 @@ const ExplorerLink = ({ txId }) => (
   </Link>
 );
 
-
-// async function callViewWithFallback(selector, contractId, method, args = {}) {
-   
-// }
 
 
 export default function MyBadgesPage() {
@@ -37,7 +32,7 @@ export default function MyBadgesPage() {
         setIsLoading(true);
         const ownedBadges = await callView(selector, ContractName, "nft_tokens_for_owner", {
           account_id: accountId,
-        }, 120);
+        }, 150);
         console.log("Owned badges:", ownedBadges);
 
         setBadges(ownedBadges || []);

@@ -61,7 +61,7 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     throw e;
   }
 }
-const callView = makeCached(makeRateLimited(callViewWithFallback));
+const callView =  makeRateLimited(makeCached(callViewWithFallback));
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
 const DEPOSIT_FOR_BADGE = "100000000000000000000000";
@@ -94,7 +94,7 @@ export default function App() {
         if (accountId) {
           rolesPromise = Promise.all([
             callView(selector, ContractName, "is_owner", { account_id: accountId }, 300),
-            callView(selector, ContractName, "is_organizer", { account_id: accountId },300),
+            callView(selector, ContractName, "is_organizer", { account_id: accountId },320),
             callView(selector, ContractName, "is_manager", { account_id: accountId }, 300)
           ]);
         }
@@ -151,7 +151,7 @@ export default function App() {
           </Box>
         )
       });
-      // const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+  
       const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");

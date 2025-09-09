@@ -8,7 +8,7 @@
  * @param {number} maxPerMinute The maximum number of calls allowed per minute.
  * @returns {Function} A new function that will enforce the rate limit.
  */
-export function makeRateLimited(fn, maxPerMinute = 800) {
+export function makeRateLimited(fn, maxPerMinute = 820) {
   // Array to store timestamps of recent calls
   const callTimestamps = [];
 
