@@ -93,9 +93,9 @@ export default function App() {
         let rolesPromise = Promise.resolve([false, false, false]);
         if (accountId) {
           rolesPromise = Promise.all([
-            callView(selector, ContractName, "is_owner", { account_id: accountId }, 200),
-            callView(selector, ContractName, "is_organizer", { account_id: accountId },200),
-            callView(selector, ContractName, "is_manager", { account_id: accountId }, 200)
+            callView(selector, ContractName, "is_owner", { account_id: accountId }, 300),
+            callView(selector, ContractName, "is_organizer", { account_id: accountId },300),
+            callView(selector, ContractName, "is_manager", { account_id: accountId }, 300)
           ]);
         }
 
@@ -151,7 +151,8 @@ export default function App() {
           </Box>
         )
       });
-      const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+      // const evs = await callViewWithFallback(selector, ContractName, "get_all_events", {});
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");
     } catch (e) {

@@ -4,7 +4,7 @@ import { setupModal } from "@near-wallet-selector/modal-ui";
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
 import { setupSender } from "@near-wallet-selector/sender";
-import { setupLedger } from "@near-wallet-selector/ledger"; 
+import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
 import { ContractName, NetworkId } from "../config";
 
 const selector = await setupWalletSelector({
@@ -12,7 +12,8 @@ const selector = await setupWalletSelector({
   modules: [
     setupMyNearWallet(),
     setupSender(),     
-    setupLedger(),      
+    setupMeteorWallet()
+      
   ],
 });
 

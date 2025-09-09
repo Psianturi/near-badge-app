@@ -5,7 +5,7 @@ import { useWalletSelector } from '../contexts/WalletSelectorContext.jsx';
 import { ContractName } from '../config.js';
 import { Box, Heading, Text, SimpleGrid, Image, Spinner, Center, Link, Tag } from '@chakra-ui/react';
 import { callViewWithFallback } from '../utils/callViewWithFallback.js';
-
+import { callView } from '../utils/near.js'; 
 
 
 const ExplorerLink = ({ txId }) => (
@@ -35,10 +35,9 @@ export default function MyBadgesPage() {
 
       try {
         setIsLoading(true);
-        // Memanggil fungsi `nft_tokens_for_owner` yang sudah ada di kontrak Anda
-        const ownedBadges = await callViewWithFallback(selector, ContractName, "nft_tokens_for_owner", {
+        const ownedBadges = await callView(selector, ContractName, "nft_tokens_for_owner", {
           account_id: accountId,
-        });
+        }, 120);
         console.log("Owned badges:", ownedBadges);
 
         setBadges(ownedBadges || []);

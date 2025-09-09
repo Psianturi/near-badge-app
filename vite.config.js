@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills' // ⬅️ ganti ke named import
+import { nodePolyfills } from 'vite-plugin-node-polyfills' 
 
 export default defineConfig({
   plugins: [
