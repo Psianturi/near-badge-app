@@ -55,4 +55,4 @@ export async function sendTransaction(selector, accountId, actions) {
   return wallet.signAndSendTransaction({ signerId: accountId, receiverId: ContractName, actions });
 }
 
-export const callView = makeCached(makeRateLimited(callViewWithFallback));
+export const callView = makeRateLimited(makeCached(callViewWithFallback));
