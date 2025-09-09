@@ -1,34 +1,46 @@
+// src/wallets/wallet.js
 
 import "@near-wallet-selector/modal-ui/styles.css";
 import { setupModal } from "@near-wallet-selector/modal-ui";
 import { setupWalletSelector } from "@near-wallet-selector/core";
-
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
-import { ContractName, NetworkId } from "./config";
+import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
+import { setupNearWallet } from "@near-wallet-selector/near-wallet";
+import { ContractName, NetworkId } from "../config";
 
-// 1. API Key from environment variable Next.js
+
+// --- KONFIGURASI DINAMIS ---
+
 const fastNearApiKey = process.env.NEXT_PUBLIC_FASTNEAR_API_KEY;
-// const rpcNodeUrl = import.meta.env.VITE_FASTNEAR_RPC_URL;
 
-// 2. URL RPC FastNear
-const fastNearNodeUrl = `https://rpc.testnet.fastnear.com/?apiKey=${fastNearApiKey}`;
-// if (!rpcNodeUrl) {
-//   console.warn("VITE_FASTNEAR_RPC_URL is not set in .env file. Using public RPC as fallback.");
-// }
+let nodeUrl;
+if (NetworkId === 'mainnet') {
+  nodeUrl = `https://rpc.mainnet.fastnear.com/?apiKey=${fastNearApiKey}`;
+} else {
+  // Default to testnet
+  nodeUrl = `https://rpc.testnet.fastnear.com/?apiKey=${fastNearApiKey}`;
+}
 
+const fallbackNodeUrl = NetworkId === 'mainnet' 
+  ? "https://rpc.mainnet.near.org"
+  : "https://rpc.testnet.near.org";
+
+
+// --- SETUP WALLET SELECTOR ---
 
 export const setupSelector = () => {
   return setupWalletSelector({
     network: {
-      networkId: "testnet",
-      nodeUrl: fastNearNodeUrl,
-      //  nodeUrl: rpcNodeUrl || "https://rpc.testnet.near.org",
-      helperUrl: "https://helper.testnet.near.org",
-      explorerUrl: "https://explorer.testnet.near.org",
+      networkId: NetworkId,
+      nodeUrl: fastNearApiKey ? nodeUrl : fallbackNodeUrl,
+      helperUrl: `https://helper.${NetworkId}.near.org`,
+      explorerUrl: `https://explorer.${NetworkId}.near.org`,
     },
     modules: [
       setupMyNearWallet(),
-
+      setupNearWallet(),
+      setupMeteorWallet(),
+  
     ],
   });
 };
