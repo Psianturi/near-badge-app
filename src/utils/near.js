@@ -34,7 +34,6 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
           finality: "optimistic",
           account_id: contractId,
           method_name: method,
-          // DIUBAH: Perbaiki kesalahan ketik dari args_base_64 menjadi args_base64
           args_base64: btoa(JSON.stringify(args)),
         },
       }),

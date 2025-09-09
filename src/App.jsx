@@ -61,10 +61,10 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
     throw e;
   }
 }
-const callView =  makeRateLimited(makeCached(callViewWithFallback));
+const callView =  makeCached(makeRateLimited(callViewWithFallback));
 const GAS = "30000000000000";
 const NO_DEPOSIT = "0";
-const DEPOSIT_FOR_BADGE = "100000000000000000000000";
+const DEPOSIT_FOR_BADGE = "120000000000000000000000";
 
 export default function App() {
   const { selector, modal, accountId } = useWalletSelector();
@@ -152,7 +152,7 @@ export default function App() {
         )
       });
   
-      const evs = await callView(selector, ContractName, "get_all_events", {}, 10);
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 5);
       setEvents(Array.isArray(evs) ? evs : []);
       setName(""); setDescription("");
     } catch (e) {
@@ -199,7 +199,7 @@ export default function App() {
         { type: "FunctionCall", params: { methodName: "delete_event", args: { event_name: eventName }, gas: GAS, deposit: NO_DEPOSIT } }
       ]);
       toast({ title: "Event deleted successfully!", status: "success" });
-      const evs = await callView(selector, ContractName, "get_all_events", {}, 10);
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 0);
       setEvents(Array.isArray(evs) ? evs : []);
     } catch (e) {
       toast({ title: "Error deleting event", description: String(e), status: "error" });
