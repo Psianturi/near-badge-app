@@ -5,11 +5,10 @@ import { setupModal } from "@near-wallet-selector/modal-ui";
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
 import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
-import { setupNearWallet } from "@near-wallet-selector/near-wallet";
-import { ContractName, NetworkId } from "../config";
+
+import { ContractName, NetworkId } from "./config";
 
 
-// --- KONFIGURASI DINAMIS ---
 
 const fastNearApiKey = process.env.NEXT_PUBLIC_FASTNEAR_API_KEY;
 
@@ -38,7 +37,7 @@ export const setupSelector = () => {
     },
     modules: [
       setupMyNearWallet(),
-      setupNearWallet(),
+      
       setupMeteorWallet(),
   
     ],
