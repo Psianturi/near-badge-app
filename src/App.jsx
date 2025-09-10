@@ -16,11 +16,17 @@ import { DEFAULT_BADGE_IMAGES } from "./assets/default-images.js";
 import MyBadgesPage from "./pages/MyBadgesPage.jsx";
 
 // helper & constanta
-const ExplorerLink = ({ txId }) => (
-  <Link href={`https://explorer.testnet.near.org/transactions/${txId}`} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">
-    View Transaction on Explorer
-  </Link>
-);
+const ExplorerLink = ({ txId }) => {
+  const explorerUrl = NetworkId === 'mainnet'
+    ? `https://explorer.near.org/transactions/${txId}`
+    : `https://explorer.testnet.near.org/transactions/${txId}`;
+
+  return (
+    <Link href={explorerUrl} isExternal color="cyan.200" textDecoration="underline" mt={2} display="block">
+      View Transaction on Explorer
+    </Link>
+  );
+};
 
 async function callViewWithFallback(selector, contractId, method, args = {}) {
   try {
