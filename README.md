@@ -6,6 +6,14 @@ Web application for the **NEAR Badge (POAP)** project. Built with **React + Vite
 
 ---
 
+## 🚀 Live on Mainnet
+
+-   ✅ **Status:** Deployed and fully functional on NEAR Mainnet.
+-   **Live Application:** [`near-badge-app.vercel.app`](https://near-badge-app.vercel.app/)
+-   **Mainnet Contract:** [`badge-master`](https://explorer.near.org/accounts/badge-master.near)
+
+---
+
 ## ✨ Core Features
 
 -   **Multi-Page Experience** – Seamless navigation with React Router (`Dashboard`, `Event Whitelist`, `My Badges`, etc.).
