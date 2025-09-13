@@ -8,7 +8,7 @@
  * @param {number} maxPerMinute The maximum number of calls allowed per minute.
  * @returns {Function} A new function that will enforce the rate limit.
  */
-export function makeRateLimited(fn, maxPerMinute = 820) {
+export function makeRateLimited(fn, maxPerMinute = 1000) {
   // Array to store timestamps of recent calls
   const callTimestamps = [];
 
@@ -23,7 +23,6 @@ export function makeRateLimited(fn, maxPerMinute = 820) {
     // Check if the number of calls in the last minute exceeds the limit
     if (callTimestamps.length >= maxPerMinute) {
       console.warn(`Rate limit of ${maxPerMinute}/min exceeded; skipping call.`);
-      // Optionally, you can throw an error to give user feedback
       // throw new Error("Too many requests. Please try again in a moment.");
       return null;
     }
