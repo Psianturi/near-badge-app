@@ -113,9 +113,9 @@ export default function App() {
         let rolesPromise = Promise.resolve([false, false, false])
         if (accountId) {
           rolesPromise = Promise.all([
-            callView(selector, ContractName, "is_owner", { account_id: accountId }, 300),
-            callView(selector, ContractName, "is_organizer", { account_id: accountId }, 320),
-            callView(selector, ContractName, "is_manager", { account_id: accountId }, 300),
+            callView(selector, ContractName, "is_owner", { account_id: accountId }, 350),
+            callView(selector, ContractName, "is_organizer", { account_id: accountId }, 350),
+            callView(selector, ContractName, "is_manager", { account_id: accountId }, 350),
           ])
         }
 
