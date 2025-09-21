@@ -24,7 +24,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { EventList } from "../components/EventList.jsx"
 import { normalizeEventName } from "../utils/normalizeEventName"
-import { CalendarIcon, StarIcon, UsersIcon } from "@chakra-ui/icons"
+import { CalendarIcon, StarIcon, PlusSquareIcon } from "@chakra-ui/icons"
 
 const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName }) => (
   <Box className="glass-card animate-fade-in-up" p={8} borderRadius="2xl">
@@ -193,7 +193,7 @@ export default function DashboardPage({
               {myEvents}
             </StatNumber>
             <StatHelpText>
-              <Icon as={UsersIcon} mr={1} />
+              <Icon as={PlusSquareIcon} mr={1} />
               Events created
             </StatHelpText>
           </Stat>
