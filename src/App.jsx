@@ -86,6 +86,18 @@ const GAS = "30000000000000"
 const NO_DEPOSIT = "0"
 const DEPOSIT_FOR_BADGE = "12000000000000000000000"
 
+async function getTotalClaimsFromAPI(contractId) {
+  try {
+    const response = await fetch(`https://api.nearblocks.io/v1/account/${contractId}/txns?method=claim_badge&page=1&per_page=1`);
+    if (!response.ok) throw new Error('API request failed');
+    const data = await response.json();
+    return data.total || 0;
+  } catch (e) {
+    console.warn('Failed to fetch total claims from API:', e);
+    return 0;
+  }
+}
+
 export default function App() {
   const { selector, modal, accountId } = useWalletSelector()
   const toast = useToast()
@@ -120,7 +132,7 @@ export default function App() {
           ])
         }
 
-        const totalClaimsPromise = callView(selector, ContractName, "get_total_claims", {}, 60).catch(() => 0)
+        const totalClaimsPromise = getTotalClaimsFromAPI(ContractName)
 
         const [evs, [ownerCheck, orgCheck, managerCheck], totalClaimsCount] = await Promise.all([
           evsPromise,
@@ -132,7 +144,7 @@ export default function App() {
         setIsOwner(Boolean(ownerCheck))
         setIsOrganizer(Boolean(orgCheck))
         setIsManager(Boolean(managerCheck))
-        setTotalClaims(totalClaimsCount || 0)
+        setTotalClaims(totalClaimsCount)
       } catch (e) {
         toast({ title: "Failed to load data", description: String(e), status: "error" })
       } finally {
@@ -220,6 +232,9 @@ export default function App() {
       // Reload events to update claimed counts
       const evs = await callView(selector, ContractName, "get_all_events", {}, 5)
       setEvents(Array.isArray(evs) ? evs : [])
+
+      // Increment total claims
+      setTotalClaims(prev => prev + 1)
 
       setClaimEventName("")
     } catch (e) {

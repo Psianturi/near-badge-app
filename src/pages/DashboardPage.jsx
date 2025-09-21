@@ -148,7 +148,7 @@ export default function DashboardPage({
   }
 
   const totalEvents = events.length
-  const totalClaimed = totalClaims || events.reduce((acc, [, ev]) => acc + (ev.claimed?.length || 0), 0)
+  const totalClaimed = totalClaims
   const myEvents = events.filter(([, ev]) => ev.organizer === accountId).length
 
   return (
