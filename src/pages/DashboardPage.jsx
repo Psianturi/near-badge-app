@@ -24,7 +24,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { EventList } from "../components/EventList.jsx"
 import { normalizeEventName } from "../utils/normalizeEventName"
-import { CalendarIcon, StarIcon, } from "@chakra-ui/icons"
+import { CalendarIcon, StarIcon, UsersIcon } from "@chakra-ui/icons"
 
 const ClaimView = ({ handleClaim, claiming, claimEventName, setClaimEventName }) => (
   <Box className="glass-card animate-fade-in-up" p={8} borderRadius="2xl">
@@ -126,6 +126,7 @@ export default function DashboardPage({
   accountId,
   handleDeleteEvent,
   sendTransaction,
+  totalClaims,
 }) {
   const [mode, setMode] = useState("claim")
   const navigate = useNavigate()
@@ -147,7 +148,7 @@ export default function DashboardPage({
   }
 
   const totalEvents = events.length
-  const totalClaimed = events.reduce((acc, [, ev]) => acc + (ev.claimed?.length || 0), 0)
+  const totalClaimed = totalClaims || events.reduce((acc, [, ev]) => acc + (ev.claimed?.length || 0), 0)
   const myEvents = events.filter(([, ev]) => ev.organizer === accountId).length
 
   return (
@@ -192,7 +193,7 @@ export default function DashboardPage({
               {myEvents}
             </StatNumber>
             <StatHelpText>
-              {/* <Icon as={UsersIcon} mr={1} /> */}
+              <Icon as={UsersIcon} mr={1} />
               Events created
             </StatHelpText>
           </Stat>

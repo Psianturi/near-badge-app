@@ -84,7 +84,7 @@ async function callViewWithFallback(selector, contractId, method, args = {}) {
 const callView = makeCached(makeRateLimited(callViewWithFallback))
 const GAS = "30000000000000"
 const NO_DEPOSIT = "0"
-const DEPOSIT_FOR_BADGE = "120000000000000000000000"
+const DEPOSIT_FOR_BADGE = "12000000000000000000000"
 
 export default function App() {
   const { selector, modal, accountId } = useWalletSelector()
@@ -96,6 +96,7 @@ export default function App() {
   const [isOwner, setIsOwner] = useState(false)
   const [isOrganizer, setIsOrganizer] = useState(false)
   const [isManager, setIsManager] = useState(false)
+  const [totalClaims, setTotalClaims] = useState(0)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -113,17 +114,25 @@ export default function App() {
         let rolesPromise = Promise.resolve([false, false, false])
         if (accountId) {
           rolesPromise = Promise.all([
-            callView(selector, ContractName, "is_owner", { account_id: accountId }, 350),
-            callView(selector, ContractName, "is_organizer", { account_id: accountId }, 350),
-            callView(selector, ContractName, "is_manager", { account_id: accountId }, 350),
+            callView(selector, ContractName, "is_owner", { account_id: accountId }, 300),
+            callView(selector, ContractName, "is_organizer", { account_id: accountId }, 320),
+            callView(selector, ContractName, "is_manager", { account_id: accountId }, 300),
           ])
         }
 
-        const [evs, [ownerCheck, orgCheck, managerCheck]] = await Promise.all([evsPromise, rolesPromise])
+        const totalClaimsPromise = callView(selector, ContractName, "get_total_claims", {}, 60).catch(() => 0)
+
+        const [evs, [ownerCheck, orgCheck, managerCheck], totalClaimsCount] = await Promise.all([
+          evsPromise,
+          rolesPromise,
+          totalClaimsPromise,
+        ])
+
         setEvents(Array.isArray(evs) ? evs : [])
         setIsOwner(Boolean(ownerCheck))
         setIsOrganizer(Boolean(orgCheck))
         setIsManager(Boolean(managerCheck))
+        setTotalClaims(totalClaimsCount || 0)
       } catch (e) {
         toast({ title: "Failed to load data", description: String(e), status: "error" })
       } finally {
@@ -339,7 +348,7 @@ export default function App() {
                     onClick={handleSignOut}
                     size="sm"
                     bg="emerald.600"
-                    color="black"
+                    color="white"
                     _hover={{ bg: "emerald.700", transform: "translateY(-1px)" }}
                     border="0"
                     shadow="md"
@@ -351,9 +360,9 @@ export default function App() {
                     onClick={handleSignIn}
                     size="sm"
                     bg="emerald.600"
-                    color="black"
+                    color="white"
                     _hover={{ bg: "emerald.700", transform: "translateY(-1px)" }}
-                    border="1"
+                    border="0"
                     shadow="md"
                   >
                     Connect Wallet
@@ -388,6 +397,7 @@ export default function App() {
                   accountId={accountId}
                   handleDeleteEvent={handleDeleteEvent}
                   sendTransaction={sendTransaction}
+                  totalClaims={totalClaims}
                 />
               }
             />
