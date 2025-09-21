@@ -216,6 +216,11 @@ export default function App() {
           </Box>
         ),
       })
+
+      // Reload events to update claimed counts
+      const evs = await callView(selector, ContractName, "get_all_events", {}, 5)
+      setEvents(Array.isArray(evs) ? evs : [])
+
       setClaimEventName("")
     } catch (e) {
       toast({ title: "Error claiming badge", description: e?.message || String(e), status: "error" })
@@ -348,7 +353,7 @@ export default function App() {
                     onClick={handleSignOut}
                     size="sm"
                     bg="emerald.600"
-                    color="white"
+                    color="black"
                     _hover={{ bg: "emerald.700", transform: "translateY(-1px)" }}
                     border="0"
                     shadow="md"
@@ -360,7 +365,7 @@ export default function App() {
                     onClick={handleSignIn}
                     size="sm"
                     bg="emerald.600"
-                    color="white"
+                    color="black"
                     _hover={{ bg: "emerald.700", transform: "translateY(-1px)" }}
                     border="0"
                     shadow="md"
